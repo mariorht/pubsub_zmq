@@ -13,13 +13,23 @@ class Subscriber:
         
         self.image_chunks = {}
 
-    def receive_message(self):
+    def receive_message(self, timeout=None):
         """ Recibe mensajes binarios que contienen múltiples imágenes y datos adicionales. """
         self.total_bytes_received = 0  # Initialize total bytes received
         start_time = time.time()  # Start time for reception
 
+        if timeout:
+            self.socket.setsockopt(zmq.RCVTIMEO, timeout)
+
         while True:
-            topic, index, total, chunk = self.socket.recv_multipart()
+            try:
+                print("Esperando recibir un mensaje...")
+                topic, index, total, chunk = self.socket.recv_multipart()
+                print(f"Mensaje recibido: index={index}, total={total}")
+            except zmq.Again:
+                print("❌ Timeout: No se recibieron mensajes en el tiempo esperado.")
+                return None, None
+
             index = int(index.decode())
             total = int(total.decode())
 
