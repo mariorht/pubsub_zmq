@@ -32,10 +32,13 @@ class Publisher:
 
         num_chunks = len(image_bytes) // self.chunk_size + 1
 
+        self.total_bytes_sent = 0  # Initialize total bytes sent
+
         for i in range(num_chunks):
             chunk = image_bytes[i * self.chunk_size: (i + 1) * self.chunk_size]
             self.socket.send_multipart([self.topic, str(i).encode(), str(num_chunks).encode(), chunk])
-            time.sleep(0.001)  # Pequeño delay para evitar congestión
+            self.total_bytes_sent += len(chunk)
+
 
         print(f"📤 Imagen publicada en {num_chunks} fragmentos. Tamaño: {frame.shape[1]}x{frame.shape[0]}")
 
