@@ -32,7 +32,7 @@ if __name__ == "__main__":
     pub = Publisher()
     angle = 0
     try:
-        frame = cv2.imread("pong.png")
+        frame = cv2.imread("../images/pong.png")  # Updated to relative path
         assert frame is not None, "❌ No se pudo cargar la imagen: pong.png"
             
         while True:
@@ -85,6 +85,16 @@ if __name__ == "__main__":
         sub.close()
         cv2.destroyAllWindows()
 ```
+
+## Running Tests
+
+To run the tests using pytest, navigate to the root directory of the project and execute:
+
+```bash
+pytest
+```
+
+This will automatically discover and run all the tests in the `tests` directory.
 
 ## License
 
