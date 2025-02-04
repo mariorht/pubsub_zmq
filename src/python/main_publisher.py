@@ -8,7 +8,7 @@ if __name__ == "__main__":
     angle = 0  # Initialize rotation angle
     try:
         # Load image
-        frame = cv2.imread("pong.png")
+        frame = cv2.imread("../../assets/pong.png")
         assert frame is not None, "❌ No se pudo cargar la imagen: pong.png"
             
         while True:
