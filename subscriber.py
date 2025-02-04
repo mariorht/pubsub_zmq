@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import time
 import json  # Add import for JSON handling
+import base64  # Add import for base64 decoding
 
 class Subscriber:
     def __init__(self, address="tcp://127.0.0.1:5555", topic="camera/image_raw"):
@@ -14,7 +15,7 @@ class Subscriber:
         self.image_chunks = {}
 
     def receive_message(self):
-        """ Recibe mensajes y determina si es una imagen o un JSON. """
+        """ Recibe mensajes binarios y determina si es una imagen o un JSON. """
         self.total_bytes_received = 0  # Initialize total bytes received
         start_time = time.time()  # Start time for reception
 
@@ -30,24 +31,29 @@ class Subscriber:
                 ordered_chunks = [self.image_chunks[i] for i in sorted(self.image_chunks.keys())]
                 message_bytes = b"".join(ordered_chunks)
 
-                # Check if the message is JSON
-                if message_bytes.startswith(b'{'):
-                    try:
-                        message = json.loads(message_bytes.decode('utf-8'))
+                # Split the JSON part and the image part if available
+                if b'\x00' in message_bytes:
+                    json_part, image_bytes = message_bytes.split(b'\x00', 1)
+                else:
+                    json_part = message_bytes
+                    image_bytes = None
+
+                try:
+                    message = json.loads(json_part.decode('utf-8'))
+                    if message.get("type") == "image" and image_bytes:
+                        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+                        frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+                        print(f"✅ Imagen embebida en binario reconstruida correctamente. Tamaño: {frame.shape[1]}x{frame.shape[0]}")
+                        self.image_chunks.clear()  # Limpiar para el siguiente mensaje
+                        return frame
+                    else:
                         print(f"✅ JSON recibido: {message}")
                         self.image_chunks.clear()  # Limpiar para el siguiente mensaje
                         return message
-                    except json.JSONDecodeError:
-                        print("❌ Error decodificando JSON.")
-                        self.image_chunks.clear()
-                        return None
-                else:
-                    # Reconstruir la imagen
-                    image_array = np.frombuffer(message_bytes, dtype=np.uint8)
-                    frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-                    print(f"✅ Imagen reconstruida correctamente. Tamaño: {frame.shape[1]}x{frame.shape[0]}")
-                    self.image_chunks.clear()  # Limpiar para la siguiente imagen
-                    return frame
+                except json.JSONDecodeError:
+                    print("❌ Error decodificando JSON.")
+                    self.image_chunks.clear()
+                    return None
 
     def close(self):
         """ Cierra la conexión ZeroMQ. """

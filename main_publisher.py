@@ -11,7 +11,7 @@ if __name__ == "__main__":
             time.sleep(.1)
             
             # Publish JSON
-            json_message = json.dumps({"key": "probando"})
+            json_message = json.dumps({"key": "probando"}).encode('utf-8')  # Encode JSON message to bytes
             pub.publish_message(json_message)
             time.sleep(.1)
     except KeyboardInterrupt:
