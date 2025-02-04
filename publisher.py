@@ -13,20 +13,30 @@ class Publisher:
         self.topic = topic.encode()
         self.chunk_size = chunk_size  # Tamaño de fragmento en bytes
 
-    def publish_image(self, frame):
-        """ Publica una imagen embebida en un mensaje binario. """
-        _, buffer = cv2.imencode(".jpg", frame)
-        image_bytes = buffer.tobytes()
+    def build_message(self, frames, data):
+        """ Construye un mensaje con un número indeterminado de imágenes y datos adicionales. """
+        images_metadata = []
+        images_data = []
+        for frame in frames:
+            _, buffer = cv2.imencode(".jpg", frame)
+            image_bytes = buffer.tobytes()
+            image_metadata = {
+                "format": "jpg",
+                "width": frame.shape[1],
+                "height": frame.shape[0],
+                "size": len(image_bytes)
+            }
+            images_metadata.append({"metadata": image_metadata})
+            images_data.append(image_bytes)
 
         message = {
-            "type": "image",
-            "format": "jpg",
-            "width": frame.shape[1],
-            "height": frame.shape[0]
+            "type": "images",
+            "count": len(frames),
+            "images": images_metadata,
+            "data": data
         }
-        message_bytes = json.dumps(message).encode('utf-8') + b'\x00' + image_bytes
-
-        self.publish_message(message_bytes)
+        message_json = json.dumps(message).encode('utf-8')
+        return message_json + b'\x00' + b''.join(images_data)
 
     def publish_message(self, message_bytes):
         """ Publica un mensaje binario fragmentado. """

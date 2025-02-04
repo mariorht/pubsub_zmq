@@ -3,7 +3,6 @@ import numpy as np
 import cv2
 import time
 import json  # Add import for JSON handling
-import base64  # Add import for base64 decoding
 
 class Subscriber:
     def __init__(self, address="tcp://127.0.0.1:5555", topic="camera/image_raw"):
@@ -33,19 +32,26 @@ class Subscriber:
 
                 # Split the JSON part and the image part if available
                 if b'\x00' in message_bytes:
-                    json_part, image_bytes = message_bytes.split(b'\x00', 1)
+                    json_part, images_bytes = message_bytes.split(b'\x00', 1)
                 else:
                     json_part = message_bytes
-                    image_bytes = None
+                    images_bytes = None
 
                 try:
                     message = json.loads(json_part.decode('utf-8'))
-                    if message.get("type") == "image" and image_bytes:
-                        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-                        frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-                        print(f"✅ Imagen embebida en binario reconstruida correctamente. Tamaño: {frame.shape[1]}x{frame.shape[0]}")
+                    if message.get("type") == "images" and images_bytes:
+                        images = []
+                        offset = 0
+                        for image_info in message["images"]:
+                            size = image_info["metadata"]["size"]
+                            image_bytes = images_bytes[offset:offset + size]
+                            image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+                            frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+                            images.append(frame)
+                            offset += size
+                        print(f"✅ Imágenes embebidas en binario reconstruidas correctamente.")
                         self.image_chunks.clear()  # Limpiar para el siguiente mensaje
-                        return frame
+                        return images
                     else:
                         print(f"✅ JSON recibido: {message}")
                         self.image_chunks.clear()  # Limpiar para el siguiente mensaje

@@ -7,26 +7,27 @@ if __name__ == "__main__":
     pub = Publisher()
     angle = 0  # Initialize rotation angle
     try:
-        # Load and rotate image
+        # Load image
         frame = cv2.imread("pong.png")
         assert frame is not None, "❌ No se pudo cargar la imagen: pong.png"
             
         while True:
+            frames = []
+            for _ in range(3):  # Add 3 rotated images
+                angle = (angle + 10) % 360  # Increment angle
+                center = (frame.shape[1] // 2, frame.shape[0] // 2)
+                matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+                rotated_frame = cv2.warpAffine(frame, matrix, (frame.shape[1], frame.shape[0]))
+                frames.append(rotated_frame)
 
-            angle = (angle + 10) % 360  # Increment angle
-            center = (frame.shape[1] // 2, frame.shape[0] // 2)
-            matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
-            rotated_frame = cv2.warpAffine(frame, matrix, (frame.shape[1], frame.shape[0]))
+            # Additional data
+            data = {"key": "probando"}
 
-            # Publish rotated image
-            pub.publish_image(rotated_frame)
-            
-            # Publish JSON
-            json_message = json.dumps({"key": "probando"}).encode('utf-8')  # Encode JSON message to bytes
-            pub.publish_message(json_message)
+            # Build and publish message with multiple images and additional data
+            message_bytes = pub.build_message(frames, data)
+            pub.publish_message(message_bytes)
 
-            time.sleep(.01)
-
+            time.sleep(.1)
             
     except KeyboardInterrupt:
         print("\n🛑 Publicador detenido.")

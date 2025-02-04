@@ -15,9 +15,10 @@ if __name__ == "__main__":
                 mbps = (sub.total_bytes_received * 8) / (elapsed_time * 1_000_000)
                 print(f"🚀 Velocidad de recepción media: {mbps:.2f} Mbps")
                 
-                # Mostrar la imagen si el mensaje es una imagen
-                if isinstance(message, np.ndarray):
-                    cv2.imshow("Imagen Recibida", message)
+                # Mostrar las imágenes si el mensaje contiene imágenes
+                if isinstance(message, list) and all(isinstance(img, np.ndarray) for img in message):
+                    for i, img in enumerate(message):
+                        cv2.imshow(f"Imagen Recibida {i+1}", img)
                     cv2.waitKey(1)  # Esperar 1 ms para actualizar la ventana
     except KeyboardInterrupt:
         print("\n🛑 Suscriptor detenido.")
