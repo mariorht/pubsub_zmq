@@ -2,6 +2,7 @@ import zmq
 import cv2
 import numpy as np
 import time
+import json  # Add import for JSON handling
 
 class Publisher:
     def __init__(self, address="tcp://*:5555", topic="camera/image_raw", chunk_size=100000):
@@ -39,8 +40,21 @@ class Publisher:
             self.socket.send_multipart([self.topic, str(i).encode(), str(num_chunks).encode(), chunk])
             self.total_bytes_sent += len(chunk)
 
-
         print(f"📤 Imagen publicada en {num_chunks} fragmentos. Tamaño: {frame.shape[1]}x{frame.shape[0]}")
+
+    def publish_message(self, message):
+        """ Publica un mensaje JSON fragmentado. """
+        message_bytes = message.encode('utf-8')
+        num_chunks = len(message_bytes) // self.chunk_size + 1
+
+        self.total_bytes_sent = 0  # Initialize total bytes sent
+
+        for i in range(num_chunks):
+            chunk = message_bytes[i * self.chunk_size: (i + 1) * self.chunk_size]
+            self.socket.send_multipart([self.topic, str(i).encode(), str(num_chunks).encode(), chunk])
+            self.total_bytes_sent += len(chunk)
+
+        print(f"📤 Mensaje JSON publicado en {num_chunks} fragmentos.")
 
     def close(self):
         """ Cierra la conexión ZeroMQ. """
