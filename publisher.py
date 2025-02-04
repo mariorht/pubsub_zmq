@@ -13,21 +13,8 @@ class Publisher:
         self.topic = topic.encode()
         self.chunk_size = chunk_size  # Tamaño de fragmento en bytes
 
-    def publish_image(self, image_path=None, use_camera=False):
-        """ Captura una imagen de un archivo o una cámara y la publica embebida en un mensaje binario. """
-        if use_camera:
-            cap = cv2.VideoCapture(0)
-            ret, frame = cap.read()
-            cap.release()
-            if not ret:
-                print("❌ Error capturando imagen de la cámara.")
-                return
-        else:
-            frame = cv2.imread(image_path)
-            if frame is None:
-                print(f"❌ No se pudo cargar la imagen: {image_path}")
-                return
-
+    def publish_image(self, frame):
+        """ Publica una imagen embebida en un mensaje binario. """
         _, buffer = cv2.imencode(".jpg", frame)
         image_bytes = buffer.tobytes()
 
