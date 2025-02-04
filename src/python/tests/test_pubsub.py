@@ -44,21 +44,21 @@ def test_pubsub(setup_pubsub):
     for img in images:
         assert img.shape == frame.shape, "❌ La imagen recibida no tiene las mismas dimensiones que la original."
 
-# def test_pubsub_text_only(setup_pubsub):
-#     pub, sub = setup_pubsub
+def test_pubsub_text_only(setup_pubsub):
+    pub, sub = setup_pubsub
 
-#     # No images, only text data
-#     frames = []
-#     data = {"key": "probando", "message": "Este es un mensaje de prueba sin imágenes."}
+    # No images, only text data
+    frames = []
+    data = {"key": "probando", "message": "Este es un mensaje de prueba sin imágenes."}
 
-#     # Build and publish message
-#     message_bytes = pub.build_message(frames, data)
-#     pub.publish_message(message_bytes)
+    # Build and publish message
+    message_bytes = pub.build_message(frames, data)
+    pub.publish_message(message_bytes)
 
-#     # Receive and verify message
-#     images, received_data = sub.receive_message()
-#     assert images == [], "❌ Se recibieron imágenes cuando no se esperaban."
-#     assert received_data == data, "❌ Los datos recibidos no coinciden."
+    # Receive and verify message
+    images, received_data = sub.receive_message()
+    assert images == [], "❌ Se recibieron imágenes cuando no se esperaban."
+    assert received_data == data, "❌ Los datos recibidos no coinciden."
 
 if __name__ == "__main__":
     pytest.main()

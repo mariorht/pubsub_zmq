@@ -31,13 +31,17 @@ class Subscriber:
                 message_bytes = b"".join(ordered_chunks)
 
                 # Split the JSON part and the image part
-                json_part, images_bytes = message_bytes.split(b'\x00', 1)
+                if b'\x00' in message_bytes:
+                    json_part, images_bytes = message_bytes.split(b'\x00', 1)
+                else:
+                    json_part = message_bytes
+                    images_bytes = b''
 
                 try:
                     message = json.loads(json_part.decode('utf-8'))
                     images = []
                     offset = 0
-                    for image_info in message["images"]:
+                    for image_info in message.get("images", []):
                         size = image_info["metadata"]["size"]
                         image_bytes = images_bytes[offset:offset + size]
                         image_array = np.frombuffer(image_bytes, dtype=np.uint8)
