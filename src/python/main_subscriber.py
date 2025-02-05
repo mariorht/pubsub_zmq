@@ -4,7 +4,7 @@ import cv2  # Add import for OpenCV
 import numpy as np  # Add import for numpy
 
 if __name__ == "__main__":
-    sub = Subscriber()
+    sub = Subscriber( topic="camera/image_raw")
     try:
         while True:
             start_time = time.time()  # Reset start time for each message

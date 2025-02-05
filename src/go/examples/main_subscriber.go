@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	endpoint := "tcp://127.0.0.1:5559"
-	topic := "test"
+	endpoint := "tcp://127.0.0.1:5555"
+	topic := "camera/image_raw"
 
 	// Crear Subscriber
 	sub, err := go_pubsub_zmq.NewSubscriber(endpoint, topic)

@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	endpoint := "tcp://127.0.0.1:5559"
-	topic := "test"
+	endpoint := "tcp://127.0.0.1:5555"
+	topic := "camera/image_raw"
 	chunkSize := 1024
 
 	// Crear Publisher
