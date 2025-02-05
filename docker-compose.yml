@@ -10,10 +10,9 @@ services:
   
   python:
     image: python:3.8
-    working_dir: /app
+    working_dir: /app/src/python
     environment:
       - PYTHONPATH=/app/src/python
     volumes:
       - ./:/app
-    command: sh -c "apt-get update && apt-get install -y libgl1-mesa-glx && pip install --no-cache-dir -r src/python/requirements.txt && pytest"
-
+    command: sh -c "apt-get update && apt-get install -y libgl1-mesa-glx && pip install --no-cache-dir -r requirements.txt && pytest"
