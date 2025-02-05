@@ -18,12 +18,14 @@ class Publisher:
         images_metadata = []
         images_data = []
         for frame in frames:
-            _, buffer = cv2.imencode(".jpg", frame)
-            image_bytes = buffer.tobytes()
+            image_bytes = frame.tobytes()
+            channels = frame.shape[2] if len(frame.shape) > 2 else 1
             image_metadata = {
-                "format": "jpg",
+                "format": "raw",
                 "width": frame.shape[1],
                 "height": frame.shape[0],
+                "channels": channels,
+                "dtype": str(frame.dtype),
                 "size": len(image_bytes)
             }
             images_metadata.append({"metadata": image_metadata})
