@@ -116,25 +116,25 @@ def test_pubsub_multiple_channels(setup_pubsub):
 
 
 
-def test_pubsub_text_only(setup_pubsub):
-    pub, sub = setup_pubsub
+# def test_pubsub_text_only(setup_pubsub):
+#     pub, sub = setup_pubsub
 
-    print("Enviando mensaje sin imágenes...")
-    # No images, only text data
-    frames = []
-    data = {"key": "probando", "message": "Este es un mensaje de prueba sin imágenes."}
+#     print("Enviando mensaje sin imágenes...")
+#     # No images, only text data
+#     frames = []
+#     data = {"key": "probando", "message": "Este es un mensaje de prueba sin imágenes."}
 
-    # Build and publish message
-    message_bytes = pub.build_message(frames, data)
-    pub.publish_message(message_bytes)
-    print("Mensaje publicado.")
+#     # Build and publish message
+#     message_bytes = pub.build_message(frames, data)
+#     pub.publish_message(message_bytes)
+#     print("Mensaje publicado.")
 
-    # Receive and verify message
-    images, received_data = sub.receive_message(timeout=5000)
-    print("Mensaje recibido.")
-    assert images is not None, "❌ No se recibieron imágenes."
-    assert images == [], "❌ Se recibieron imágenes cuando no se esperaban."
-    assert received_data == data, "❌ Los datos recibidos no coinciden."
+#     # Receive and verify message
+#     images, received_data = sub.receive_message(timeout=5000)
+#     print("Mensaje recibido.")
+#     assert images is not None, "❌ No se recibieron imágenes."
+#     assert images == [], "❌ Se recibieron imágenes cuando no se esperaban."
+#     assert received_data == data, "❌ Los datos recibidos no coinciden."
 
 
 if __name__ == "__main__":

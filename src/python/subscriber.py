@@ -27,7 +27,7 @@ class Subscriber:
                 topic, index, total, chunk = self.socket.recv_multipart()
                 # print(f"Mensaje recibido: index={index}, total={total}")
             except zmq.Again:
-                # print("❌ Timeout: No se recibieron mensajes en el tiempo esperado.")
+                print("❌ Timeout: No se recibieron mensajes en el tiempo esperado.")
                 return None, None
 
             index = int(index.decode())
