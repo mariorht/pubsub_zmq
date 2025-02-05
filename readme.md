@@ -8,7 +8,7 @@ Este proyecto contiene librerías que facilitan la publicación y suscripción d
   La implementación en Python está completada. La biblioteca permite la publicación y suscripción de mensajes, reconstrucción de imágenes y procesamiento de datos adicionales utilizando un protocolo basado en ZeroMQ.
 
 - **Go:**  
-  La implementación en Go se encuentra en desarrollo. Actualmente se dispone de una versión muy sencilla que permite la comunicación básica a través de ZeroMQ, pero aún no soporta completamente el protocolo definido en la versión de Python.
+  La implementación en Go se encuentra en desarrollo. Actualmente se dispone de una versión sencilla que soporta el protocolo de mensajes pero obvia las imágenes.
 
 - **C++:**  
   Se tiene previsto desarrollar una versión en C++ del proyecto, lo que permitirá ampliar la compatibilidad y explorar mejoras en el rendimiento.
