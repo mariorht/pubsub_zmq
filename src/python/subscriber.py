@@ -23,9 +23,9 @@ class Subscriber:
 
         while True:
             try:
-                print("Esperando recibir un mensaje...")
+                # print("Esperando recibir un mensaje...")
                 topic, index, total, chunk = self.socket.recv_multipart()
-                print(f"Mensaje recibido: index={index}, total={total}")
+                # print(f"Mensaje recibido: index={index}, total={total}")
             except zmq.Again:
                 print("❌ Timeout: No se recibieron mensajes en el tiempo esperado.")
                 return None, None
@@ -48,19 +48,31 @@ class Subscriber:
                     images_bytes = b''
 
                 try:
+                    # print("Decodificando JSON...")
                     message = json.loads(json_part.decode('utf-8'))
+                    # print(f"📄 Mensaje decodificado: {message}")
                     images = []
-                    offset = 0
-                    for image_info in message.get("images", []):
-                        size = image_info["metadata"]["size"]
-                        image_bytes = images_bytes[offset:offset + size]
-                        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-                        frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-                        images.append(frame)
-                        offset += size
-                    print(f"✅ Imágenes embebidas en binario reconstruidas correctamente.")
+                    if "images" in message and message["images"]:
+                        offset = 0
+                        for image_info in message["images"]:
+                            size = image_info["metadata"]["size"]
+                            format = image_info["metadata"]["format"]
+                            dtype = image_info["metadata"]["dtype"]
+                            image_bytes = images_bytes[offset:offset + size]
+                            if format == "raw":
+                                width = image_info["metadata"]["width"]
+                                height = image_info["metadata"]["height"]
+                                channels = image_info["metadata"]["channels"]
+                                image_array = np.frombuffer(image_bytes, dtype=dtype).reshape((height, width, channels))
+                            else:
+                                print(f"❌ Formato de imagen no soportado: {format}")
+                                self.image_chunks.clear()
+                                return None, None
+                            images.append(image_array)
+                            offset += size
+                        print(f"✅ Imágenes embebidas en binario reconstruidas correctamente.")
                     self.image_chunks.clear()  # Limpiar para el siguiente mensaje
-                    return images, message["data"]
+                    return images, message.get("data", {})
                 except json.JSONDecodeError:
                     print("❌ Error decodificando JSON.")
                     self.image_chunks.clear()

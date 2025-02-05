@@ -18,12 +18,14 @@ class Publisher:
         images_metadata = []
         images_data = []
         for frame in frames:
-            _, buffer = cv2.imencode(".jpg", frame)
-            image_bytes = buffer.tobytes()
+            image_bytes = frame.tobytes()
+            channels = frame.shape[2] if len(frame.shape) > 2 else 1
             image_metadata = {
-                "format": "jpg",
+                "format": "raw",
                 "width": frame.shape[1],
                 "height": frame.shape[0],
+                "channels": channels,
+                "dtype": str(frame.dtype),
                 "size": len(image_bytes)
             }
             images_metadata.append({"metadata": image_metadata})
@@ -36,7 +38,7 @@ class Publisher:
             "data": data
         }
         message_json = json.dumps(message).encode('utf-8')
-        return message_json + b'\x00' + b''.join(images_data)
+        return message_json + b'\x00' + b''.join(images_data) if images_data else message_json
 
     def publish_message(self, message_bytes):
         """ Publica un mensaje binario fragmentado. """
@@ -44,12 +46,14 @@ class Publisher:
 
         self.total_bytes_sent = 0  # Initialize total bytes sent
 
+        # print(f"📤 Enviando mensaje: {message_bytes[:140]}...")  # Print the first 100 bytes of the message
+
         for i in range(num_chunks):
             chunk = message_bytes[i * self.chunk_size: (i + 1) * self.chunk_size]
             self.socket.send_multipart([self.topic, str(i).encode(), str(num_chunks).encode(), chunk])
             self.total_bytes_sent += len(chunk)
 
-        print(f"📤 Mensaje binario publicado en {num_chunks} fragmentos.")
+        # print(f"📤 Mensaje binario publicado en {num_chunks} fragmentos. Total bytes enviados: {self.total_bytes_sent}")
 
     def close(self):
         """ Cierra la conexión ZeroMQ. """

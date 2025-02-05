@@ -105,6 +105,11 @@ pytest
 
 Esto descubrirá y ejecutará automáticamente todas las pruebas en el directorio `tests`.
 
+
+# Pendiente
+
+El test que envía mensajes cortos sin imágenes falla en la recepción y no sé por qué. Si lo pruebo fuera funciona
+
 ## Licencia
 
 Este proyecto está licenciado bajo la Licencia MIT.
