@@ -2,17 +2,19 @@ version: "3.8"
 
 services:
   go:
-    image: golang:1.13
-    working_dir: /app
+    build: ./src/go
     volumes:
       - ./src/go:/app
-    command: sh -c "apt-get update && apt-get install -y libzmq3-dev && go test -v ./tests"
-  
+    # Se ejecuta el comando por defecto (CMD) definido en el Dockerfile
+    command: go test -v ./tests
+
   python:
-    image: python:3.8
-    working_dir: /app/src/python
+    build: ./src/python
+    working_dir: /app
     environment:
       - PYTHONPATH=/app/src/python
     volumes:
+      # Monta la raíz para preservar la estructura relativa (assets, etc.)
       - ./:/app
-    command: sh -c "apt-get update && apt-get install -y libgl1-mesa-glx && pip install --no-cache-dir -r requirements.txt && pytest"
+    # Se ejecuta el comando por defecto definido en el Dockerfile (pytest)
+    command: pytest

@@ -97,18 +97,18 @@ if __name__ == "__main__":
 
 ## Ejecución de Pruebas
 
-Para ejecutar las pruebas utilizando pytest, navega al directorio raíz del proyecto y ejecuta:
+Para ejecutar las pruebas utilizando docker, está preparado el docker-compose.yml:
 
 ```bash
-pytest
+docker compose up
 ```
 
-Esto descubrirá y ejecutará automáticamente todas las pruebas en el directorio `tests`.
+Esto ejecutará automáticamente todas las pruebas.
 
 
 # Pendiente
 
-El test que envía mensajes cortos sin imágenes falla en la recepción y no sé por qué. Si lo pruebo fuera funciona
+El test de python que envía mensajes cortos sin imágenes falla en la recepción y no sé por qué. Si lo pruebo fuera funciona
 
 ## Licencia
 
