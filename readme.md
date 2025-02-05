@@ -1,26 +1,52 @@
 # PubSub ZMQ Project
 
-Este proyecto contiene una biblioteca de Python que facilita la publicación y suscripción de mensajes que contienen múltiples imágenes y datos adicionales utilizando ZeroMQ. La biblioteca está diseñada para manejar grandes datos binarios de manera eficiente mediante la fragmentación de mensajes en partes más pequeñas.
+Este proyecto contiene librerías que facilitan la publicación y suscripción de mensajes que contienen múltiples imágenes y datos adicionales utilizando ZeroMQ. La biblioteca está diseñada para manejar grandes datos binarios de manera eficiente mediante la fragmentación de mensajes en partes más pequeñas.
+
+## Estado del Proyecto
+
+- **Python:**  
+  La implementación en Python está completada. La biblioteca permite la publicación y suscripción de mensajes, reconstrucción de imágenes y procesamiento de datos adicionales utilizando un protocolo basado en ZeroMQ.
+
+- **Go:**  
+  La implementación en Go se encuentra en desarrollo. Actualmente se dispone de una versión muy sencilla que permite la comunicación básica a través de ZeroMQ, pero aún no soporta completamente el protocolo definido en la versión de Python.
+
+- **C++:**  
+  Se tiene previsto desarrollar una versión en C++ del proyecto, lo que permitirá ampliar la compatibilidad y explorar mejoras en el rendimiento.
 
 ## Estructura del Proyecto
 
 El proyecto está organizado de la siguiente manera:
 
-- `src/python`: Contiene el código fuente de la biblioteca y los scripts de ejemplo.
+- **src/python:**  
+  Contiene el código fuente de la biblioteca y los scripts de ejemplo.
   - `publisher.py`: Implementación del publicador.
   - `subscriber.py`: Implementación del suscriptor.
   - `main_publisher.py`: Script de ejemplo para el publicador.
   - `main_subscriber.py`: Script de ejemplo para el suscriptor.
   - `tests`: Contiene las pruebas unitarias para la biblioteca.
-- `assets`: Contiene los recursos utilizados en los ejemplos, como imágenes.
-- `protocol.md`: Documentación del protocolo utilizado para codificar y decodificar mensajes.
-- `requirements.txt`: Lista de dependencias necesarias para ejecutar el proyecto.
-- `.gitignore`: Lista de archivos y directorios que deben ser ignorados por Git.
-- `pytest.ini`: Configuración de pytest para el proyecto.
+  - `pytest.ini`: Configuración de pytest para el proyecto.
+  - `requirements.txt`: Lista de dependencias necesarias para ejecutar el proyecto.
+
+- **src/go:**  
+  Contiene la implementación en Go (actualmente en proceso).
+  - `publisher.go`: Implementación básica del publicador.
+  - `subscriber.go`: Implementación básica del suscriptor.
+  - `examples`: Scripts de ejemplo para el publicador y suscriptor.
+  - `tests`: Pruebas unitarias para la implementación en Go.
+  - `go.mod`, `go.sum`: Configuración del módulo Go.
+
+- **assets:**  
+  Contiene recursos utilizados en los ejemplos, como imágenes (por ejemplo, `pong.png`).
+
+- **Otros archivos:**
+  - `protocol.md`: Documentación del protocolo utilizado para codificar y decodificar mensajes.
+  - `docker-compose.yml`: Configuración de Docker Compose para ejecutar los tests en entornos de Python y Go.
+  - `run_tests.sh`: Script con logs coloridos para ejecutar secuencialmente los tests de Go y Python.
+  - `readme.md`: Este archivo.
 
 ## Instalación
 
-Para instalar las dependencias necesarias, ejecuta:
+Para instalar las dependencias necesarias en la parte de Python, ejecuta:
 
 ```bash
 pip install -r src/python/requirements.txt
@@ -97,19 +123,32 @@ if __name__ == "__main__":
 
 ## Ejecución de Pruebas
 
-Para ejecutar las pruebas utilizando docker, está preparado el docker-compose.yml:
+El proyecto está preparado para ejecutar las pruebas utilizando Docker. El archivo **docker-compose.yml** configura dos servicios (Go y Python) que, al ejecutarse, corren los tests de cada entorno.
+
+Para ejecutar las pruebas, puedes utilizar:
 
 ```bash
 docker compose up
 ```
 
-Esto ejecutará automáticamente todas las pruebas.
+Esto iniciará los servicios y ejecutará los tests. También puedes usar el script **run_tests.sh** para ejecutarlos de forma secuencial (primero los tests de Go y, de ser exitosos, luego los de Python):
 
+```bash
+./run_tests.sh
+```
 
-# Pendiente
+## Pendiente
 
-El test de python que envía mensajes cortos sin imágenes falla en la recepción y no sé por qué. Si lo pruebo fuera funciona
+- **Python:**  
+  Resolver el problema con el test corto que no envía imágenes, el cual falla en la recepción en el entorno Docker (aunque fuera funciona correctamente).
+
+- **Go:**  
+  Terminar la implementación de la librería en Go para soportar completamente el protocolo utilizado en la versión de Python.
+
+- **C++:**  
+  Desarrollar una versión en C++ del proyecto para ampliar la compatibilidad y explorar mejoras de rendimiento.
 
 ## Licencia
 
 Este proyecto está licenciado bajo la Licencia MIT.
+
