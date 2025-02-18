@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"go_pubsub_zmq"
@@ -20,8 +22,7 @@ func main() {
 	defer pub.Close()
 
 	fmt.Println("✅ Publisher (Go) iniciado. Esperando suscriptores...")
-
-	time.Sleep(2 * time.Second) // Para evitar el Slow Joiner Syndrome
+	time.Sleep(2 * time.Second)
 
 	for i := 0; i < 1; i++ {
 		data := map[string]interface{}{
@@ -29,7 +30,7 @@ func main() {
 			"index": i,
 		}
 
-		messageBytes, err := pub.BuildMessage(nil, data) // nil porque no enviamos imágenes reales
+		messageBytes, err := pub.BuildMessage(nil, data)
 		if err != nil {
 			fmt.Printf("❌ Error al construir mensaje: %v\n", err)
 			continue
@@ -39,6 +40,16 @@ func main() {
 			fmt.Printf("❌ Error al publicar mensaje: %v\n", err)
 		} else {
 			fmt.Printf("📤 Mensaje %d enviado con data: %v\n", i, data)
+
+			// Guardar el último mensaje enviado
+			file, err := os.Create("/shared/result_publisher.json")
+			if err != nil {
+				fmt.Printf("❌ Error al guardar JSON en publisher: %v\n", err)
+				continue
+			}
+			encoder := json.NewEncoder(file)
+			_ = encoder.Encode(data)
+			file.Close()
 		}
 
 		time.Sleep(1 * time.Second)

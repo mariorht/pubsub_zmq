@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import cv2
+import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
@@ -16,14 +17,13 @@ if __name__ == "__main__":
         frame = cv2.imread("/assets/pong.png")
         assert frame is not None, f"❌ No se pudo cargar la imagen: /assets/pong.png"
 
+        print("✅ Publicador creado. Esperando que se conecten los suscriptores...")
         time.sleep(2)
 
-        print("✅ Publicador creado. Enviando mensajes...")
-
-        for i in range(1):  # Envía 1 mensajes y termina
+        for i in range(1):
             frames = []
 
-            for _ in range(3):  # Genera 3 imágenes rotadas
+            for _ in range(3):
                 angle = (angle + 10) % 360
                 center = (frame.shape[1] // 2, frame.shape[0] // 2)
                 matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
@@ -34,6 +34,10 @@ if __name__ == "__main__":
 
             message_bytes = pub.build_message(frames, data)
             pub.publish_message(message_bytes)
+
+            # Guardar el último mensaje enviado
+            with open("/shared/result_publisher.json", "w") as f:
+                json.dump(data, f)
 
             print(f"📤 Mensaje {i} enviado con {len(frames)} imágenes y data {data}")
 

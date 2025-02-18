@@ -38,6 +38,24 @@ echo -e "\n"
 
 
 
+compare_json() {
+  pub_json=$(jq -S . ./shared/result_publisher.json)
+  sub_json=$(jq -S . ./shared/result.json)
+
+  if [ "$pub_json" == "$sub_json" ]; then
+    echo -e "${GREEN}✅ Los mensajes coinciden entre Publisher y Subscriber${NC}"
+  else
+    echo -e "${RED}❌ Los mensajes NO coinciden entre Publisher y Subscriber${NC}"
+    echo -e "${YELLOW}📄 Contenido de result_publisher.json:${NC}"
+    echo "$pub_json"
+    echo -e "${YELLOW}📄 Contenido de result.json:${NC}"
+    echo "$sub_json"
+    exit 1
+  fi
+}
+
+
+
 
 
 print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN PYTHON -> GO"
@@ -48,7 +66,9 @@ if [ ! -f ./shared/result.json ]; then
   exit 1
 fi
 
-rm -f ./shared/result.json
+compare_json
+
+rm -f ./shared/result.json ./shared/result_publisher.json
 print_banner "${GREEN}" "TESTS DE INTEGRACIÓN PYTHON -> GO COMPLETADOS"
 
 
@@ -62,5 +82,7 @@ if [ ! -f ./shared/result.json ]; then
   exit 1
 fi
 
-rm -f ./shared/result.json
+compare_json
+
+rm -f ./shared/result.json ./shared/result_publisher.json
 print_banner "${GREEN}" "TESTS DE INTEGRACIÓN PYTHON -> GO COMPLETADOS"
