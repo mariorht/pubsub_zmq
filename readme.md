@@ -8,10 +8,10 @@ Este proyecto contiene librerías que facilitan la publicación y suscripción d
   La implementación en Python está completada. La biblioteca permite la publicación y suscripción de mensajes, reconstrucción de imágenes y procesamiento de datos adicionales utilizando un protocolo basado en ZeroMQ.
 
 - **Go:**  
-  La implementación en Go se encuentra en desarrollo. Actualmente se dispone de una versión sencilla que soporta el protocolo de mensajes pero obvia las imágenes.
+  La implementación en Go se encuentra en desarrollo. Actualmente se dispone de una versión sencilla que soporta el protocolo de mensajes pero obvia las imágenes. Se han añadido pruebas de integración entre Go y Python, que verifican que los mensajes enviados por uno son recibidos correctamente por el otro.
 
 - **C++:**  
-  Se tiene previsto desarrollar una versión en C++ del proyecto, lo que permitirá ampliar la compatibilidad y explorar mejoras en el rendimiento.
+  La implementación en C++ está en progreso. Ya se cuenta con una versión básica del publicador y suscriptor que soporta el protocolo, aunque actualmente no se realiza el manejo de imágenes. Se han creado pruebas de integración entre C++ y Python, y entre C++ y Go. Los publicadores y suscriptores en C++ generan archivos JSON con los mensajes enviados y recibidos para validación.
 
 ## Estructura del Proyecto
 
@@ -23,25 +23,33 @@ El proyecto está organizado de la siguiente manera:
   - `subscriber.py`: Implementación del suscriptor.
   - `main_publisher.py`: Script de ejemplo para el publicador.
   - `main_subscriber.py`: Script de ejemplo para el suscriptor.
-  - `tests`: Contiene las pruebas unitarias para la biblioteca.
+  - `tests`: Contiene las pruebas unitarias e integración.
   - `pytest.ini`: Configuración de pytest para el proyecto.
   - `requirements.txt`: Lista de dependencias necesarias para ejecutar el proyecto.
 
 - **src/go:**  
-  Contiene la implementación en Go (actualmente en proceso).
+  Contiene la implementación en Go.
   - `publisher.go`: Implementación básica del publicador.
   - `subscriber.go`: Implementación básica del suscriptor.
   - `examples`: Scripts de ejemplo para el publicador y suscriptor.
-  - `tests`: Pruebas unitarias para la implementación en Go.
+  - `tests`: Pruebas unitarias y de integración entre Go y Python.
   - `go.mod`, `go.sum`: Configuración del módulo Go.
+
+- **src/cpp:**  
+  Contiene la implementación en C++.
+  - `include`: Cabeceras de las clases `Publisher` y `Subscriber`.
+  - `src`: Implementación de `Publisher` y `Subscriber`.
+  - `tests`: Scripts de integración para verificar el funcionamiento entre C++, Go y Python.
+  - `Dockerfile`: Imagen Docker para compilar y ejecutar los ejemplos y tests en C++.
+  - `CMakeLists.txt`: Configuración de CMake para compilar el código.
 
 - **assets:**  
   Contiene recursos utilizados en los ejemplos, como imágenes (por ejemplo, `pong.png`).
 
 - **Otros archivos:**
   - `protocol.md`: Documentación del protocolo utilizado para codificar y decodificar mensajes.
-  - `docker-compose.yml`: Configuración de Docker Compose para ejecutar los tests en entornos de Python y Go.
-  - `run_tests.sh`: Script con logs coloridos para ejecutar secuencialmente los tests de Go y Python.
+  - `docker-compose.yml`: Configuración de Docker Compose para ejecutar los tests en entornos de Python, Go y C++.
+  - `run_tests.sh`: Script con logs coloridos para ejecutar secuencialmente los tests de C++, Go y Python.
   - `readme.md`: Este archivo.
 
 ## Instalación
@@ -56,97 +64,59 @@ pip install -r src/python/requirements.txt
 
 ### Publicador
 
-El publicador lee una imagen, la rota para crear múltiples fotogramas y publica los fotogramas junto con datos adicionales.
+Ejecuta el publicador de ejemplo en Python:
 
-```python
-from publisher import Publisher
-import time
-import cv2
+```bash
+python src/python/main_publisher.py
+```
 
-if __name__ == "__main__":
-    pub = Publisher()
-    angle = 0
-    try:
-        frame = cv2.imread("../assets/pong.png")  # Ruta relativa actualizada
-        assert frame is not None, "❌ No se pudo cargar la imagen: pong.png"
-            
-        while True:
-            frames = []
-            for _ in range(3):
-                angle = (angle + 10) % 360
-                center = (frame.shape[1] // 2, frame.shape[0] // 2)
-                matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
-                rotated_frame = cv2.warpAffine(frame, matrix, (frame.shape[1], frame.shape[0]))
-                frames.append(rotated_frame)
+Ejecuta el publicador de ejemplo en Go:
 
-            data = {"key": "probando"}
-            message_bytes = pub.build_message(frames, data)
-            pub.publish_message(message_bytes)
-            time.sleep(.1)
-            
-    except KeyboardInterrupt:
-        print("\n🛑 Publicador detenido.")
-        pub.close()
+```bash
+go run src/go/examples/main_publisher.go
+```
+
+Ejecuta el publicador de ejemplo en C++ dentro del contenedor Docker:
+
+```bash
+docker-compose run --rm integration_cpp_pub
 ```
 
 ### Suscriptor
 
-El suscriptor recibe los mensajes fragmentados, reconstruye las imágenes y las muestra utilizando OpenCV.
+Ejecuta el suscriptor de ejemplo en Python:
 
-```python
-from subscriber import Subscriber
-import time
-import cv2
+```bash
+python src/python/main_subscriber.py
+```
 
-if __name__ == "__main__":
-    sub = Subscriber()
-    try:
-        while True:
-            start_time = time.time()
-            sub.total_bytes_received = 0
-            images, data = sub.receive_message()
-            if images is not None:
-                elapsed_time = time.time() - start_time
-                mbps = (sub.total_bytes_received * 8) / (elapsed_time * 1_000_000)
-                print(f"🚀 Velocidad de recepción media: {mbps:.2f} Mbps")
-                
-                for i, img in enumerate(images):
-                    cv2.imshow(f"Imagen Recibida {i+1}", img)
-                cv2.waitKey(1)
-                
-                print(f"📄 Datos recibidos: {data}")
-    except KeyboardInterrupt:
-        print("\n🛑 Suscriptor detenido.")
-        sub.close()
-        cv2.destroyAllWindows()
+Ejecuta el suscriptor de ejemplo en Go:
+
+```bash
+go run src/go/examples/main_subscriber.go
+```
+
+Ejecuta el suscriptor de ejemplo en C++ dentro del contenedor Docker:
+
+```bash
+docker-compose run --rm integration_cpp_sub
 ```
 
 ## Ejecución de Pruebas
 
-El proyecto está preparado para ejecutar las pruebas utilizando Docker. El archivo **docker-compose.yml** configura dos servicios (Go y Python) que, al ejecutarse, corren los tests de cada entorno.
+El proyecto está preparado para ejecutar las pruebas utilizando Docker. El archivo **docker-compose.yml** configura servicios para C++, Go y Python, que al ejecutarse corren los tests de cada entorno y pruebas de integración entre ellos.
 
 Para ejecutar las pruebas, puedes utilizar:
 
 ```bash
-docker compose up
+docker-compose up
 ```
 
-Esto iniciará los servicios y ejecutará los tests. También puedes usar el script **run_tests.sh** para ejecutarlos de forma secuencial (primero los tests de Go y, de ser exitosos, luego los de Python):
+Esto iniciará los servicios y ejecutará los tests. También puedes usar el script **run_tests.sh** para ejecutarlos de forma secuencial (primero C++, luego Go y finalmente Python):
 
 ```bash
 ./run_tests.sh
 ```
-
-## Pendiente
-
-- **Python:**  
-  Resolver el problema con el test corto que no envía imágenes, el cual falla en la recepción en el entorno Docker (aunque fuera funciona correctamente).
-
-- **Go:**  
-  Terminar la implementación de la librería en Go para soportar completamente el protocolo utilizado en la versión de Python.
-
-- **C++:**  
-  Desarrollar una versión en C++ del proyecto para ampliar la compatibilidad y explorar mejoras de rendimiento.
 
 ## Licencia
 
