@@ -100,4 +100,6 @@ fi
 
 compare_json
 
+rm -rf shared/  
+
 print_banner "${GREEN}" "TESTS DE INTEGRACIÓN C++ -> C++ COMPLETADOS"
