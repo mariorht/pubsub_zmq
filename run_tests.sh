@@ -18,22 +18,49 @@ print_banner() {
 }
 
 echo -e "\n"
-print_banner "${BLUE}" "INICIANDO TESTS DE GO"
+print_banner "${BLUE}" "INICIANDO TESTS UNITARIOS DE GO"
 echo -e "\n"
 
 docker-compose run --rm go
 
 echo -e "\n"
-print_banner "${GREEN}" "TESTS DE GO COMPLETADOS EXITOSAMENTE"
+print_banner "${GREEN}" "TESTS UNITARIOS DE GO COMPLETADOS"
 echo -e "\n"
 
-print_banner "${YELLOW}" "INICIANDO TESTS DE PYTHON"
+print_banner "${YELLOW}" "INICIANDO TESTS UNITARIOS DE PYTHON"
 echo -e "\n"
 
 docker-compose run --rm python
 
 echo -e "\n"
-print_banner "${GREEN}" "TESTS DE PYTHON COMPLETADOS EXITOSAMENTE"
+print_banner "${GREEN}" "TESTS UNITARIOS DE PYTHON COMPLETADOS"
 echo -e "\n"
-print_banner "${GREEN}" "TODOS LOS TESTS SE EJECUTARON CORRECTAMENTE"
-echo -e "\n"
+
+
+
+
+
+print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN PYTHON -> GO"
+docker-compose up integration_python_pub integration_go_sub
+
+if [ ! -f ./shared/result.json ]; then
+  echo -e "${RED}❌ No se generó el archivo de resultado en la integración PYTHON -> GO${NC}"
+  exit 1
+fi
+
+rm -f ./shared/result.json
+print_banner "${GREEN}" "TESTS DE INTEGRACIÓN PYTHON -> GO COMPLETADOS"
+
+
+
+print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN PYTHON -> GO"
+rm -f ./shared/result.json
+docker-compose up integration_python_pub integration_go_sub
+
+if [ ! -f ./shared/result.json ]; then
+  echo -e "${RED}❌ No se generó el archivo de resultado en la integración PYTHON -> GO${NC}"
+  exit 1
+fi
+
+rm -f ./shared/result.json
+print_banner "${GREEN}" "TESTS DE INTEGRACIÓN PYTHON -> GO COMPLETADOS"

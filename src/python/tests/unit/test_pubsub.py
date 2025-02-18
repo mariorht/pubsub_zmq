@@ -22,7 +22,7 @@ def test_pubsub(setup_pubsub):
 
     # Set environment variable for image path
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    image_path = os.path.join(base_dir, "../../../assets/pong.png")
+    image_path = os.path.join(base_dir, "../../../../assets/pong.png")
     os.environ["PONG_IMAGE_PATH"] = image_path
 
     # Load image
@@ -49,7 +49,7 @@ def test_pubsub_different_formats(setup_pubsub):
 
     # Set environment variable for image path
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    image_path = os.path.join(base_dir, "../../../assets/pong.png")
+    image_path = os.path.join(base_dir, "../../../../assets/pong.png")
 
     # Load image
     frame = cv2.imread(image_path)
@@ -84,7 +84,7 @@ def test_pubsub_multiple_channels(setup_pubsub):
 
     # Set environment variable for image path
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    image_path = os.path.join(base_dir, "../../../assets/pong.png")
+    image_path = os.path.join(base_dir, "../../../../assets/pong.png")
 
     # Load image
     frame = cv2.imread(image_path)

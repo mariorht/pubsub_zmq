@@ -5,8 +5,7 @@ services:
     build: ./src/go
     volumes:
       - ./src/go:/app
-    # Se ejecuta el comando por defecto (CMD) definido en el Dockerfile
-    command: go test -v ./tests
+    command: go test -v ./tests/unit/  # 🔹 Ejecuta solo los tests unitarios de Go
 
   python:
     build: ./src/python
@@ -14,7 +13,45 @@ services:
     environment:
       - PYTHONPATH=/app/src/python
     volumes:
-      # Monta la raíz para preservar la estructura relativa (assets, etc.)
       - ./:/app
-    # Se ejecuta el comando por defecto definido en el Dockerfile (pytest)
-    command: pytest
+    command: pytest src/python/tests/unit/  # 🔹 Ejecuta solo los tests unitarios de Python
+
+
+  integration_python_pub:
+    build: ./src/python
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app/src/python
+    volumes:
+      - ./src/python:/app
+      - ./assets:/assets
+      - ./shared:/shared
+    command: python3 tests/integration/main_publisher.py
+
+  integration_go_sub:
+    build: ./src/go
+    volumes:
+      - ./src/go:/app
+      - ./assets:/assets
+      - ./shared:/shared
+    command: go run /app/tests/integration/main_subscriber.go
+
+
+  integration_go_pub:
+    build: ./src/go
+    volumes:
+      - ./src/go:/app
+      - ./shared:/shared
+    command: go run /app/tests/integration/main_publisher.go
+
+  integration_python_sub:
+    build: ./src/python
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app/src/python
+    volumes:
+      - ./src/python:/app
+      - ./shared:/shared
+    command: python3 tests/integration/main_subscriber.py
+
+
