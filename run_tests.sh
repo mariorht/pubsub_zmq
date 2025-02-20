@@ -1,57 +1,26 @@
 #!/bin/bash
 set -e
 
-# Definir colores
+# ============================
+# CONFIGURACIÓN DE COLORES
+# ============================
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # Sin color
 
+# ============================
+# FUNCIONES AUXILIARES
+# ============================
 print_banner() {
   local color="$1"
   local text="$2"
   local border=$(printf '%*s' "${#text}" '' | tr ' ' '#')
-  echo -e "${color}${border}${NC}"
+  echo -e "\n${color}${border}${NC}"
   echo -e "${color}${text}${NC}"
-  echo -e "${color}${border}${NC}"
+  echo -e "${color}${border}${NC}\n"
 }
-
-echo -e "\n"
-print_banner "${BLUE}" "INICIANDO TESTS UNITARIOS DE GO"
-echo -e "\n"
-
-docker-compose run --rm go_unit_tests
-
-echo -e "\n"
-print_banner "${GREEN}" "TESTS UNITARIOS DE GO COMPLETADOS"
-echo -e "\n"
-
-print_banner "${YELLOW}" "INICIANDO TESTS UNITARIOS DE PYTHON"
-echo -e "\n"
-
-docker-compose run --rm python_unit_tests
-
-echo -e "\n"
-print_banner "${GREEN}" "TESTS UNITARIOS DE PYTHON COMPLETADOS"
-echo -e "\n"
-
-
-print_banner "${YELLOW}" "INICIANDO TESTS UNITARIOS DE C++"
-echo -e "\n"
-
-docker-compose build cpp_build
-docker-compose run --rm cpp_build
-docker-compose run --rm cpp_unit_tests
-
-
-
-echo -e "\n"
-print_banner "${GREEN}" "TESTS UNITARIOS DE C++ COMPLETADOS"
-echo -e "\n"
-
-
-
 
 compare_json() {
   pub_json=$(jq -S . ./shared/result_publisher.json)
@@ -69,12 +38,38 @@ compare_json() {
   fi
 }
 
+clean_shared() {
+  rm -f ./shared/result.json ./shared/result_publisher.json
+}
 
+# ============================
+# TESTS UNITARIOS
+# ============================
+print_banner "${BLUE}" "INICIANDO TESTS UNITARIOS DE GO"
+docker-compose run --rm go_unit_tests
+print_banner "${GREEN}" "TESTS UNITARIOS DE GO COMPLETADOS"
 
+print_banner "${BLUE}" "INICIANDO TESTS UNITARIOS DE PYTHON"
+docker-compose run --rm python_unit_tests
+print_banner "${GREEN}" "TESTS UNITARIOS DE PYTHON COMPLETADOS"
 
+print_banner "${BLUE}" "INICIANDO TESTS UNITARIOS DE C++"
+docker-compose build cpp_build
+docker-compose run --rm cpp_build
+docker-compose run --rm cpp_unit_tests
+print_banner "${GREEN}" "TESTS UNITARIOS DE C++ COMPLETADOS"
 
+# ============================
+# TESTS DE INTEGRACIÓN
+# ============================
+
+# ----------------------------
+# PYTHON -> GO
+# ----------------------------
 print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN PYTHON -> GO"
-docker-compose up integration_python_pub integration_go_sub
+clean_shared
+
+PUBSUB_ENDPOINT=tcp://integration_python_pub:5555 docker-compose up integration_python_pub integration_go_sub
 
 if [ ! -f ./shared/result.json ]; then
   echo -e "${RED}❌ No se generó el archivo de resultado en la integración PYTHON -> GO${NC}"
@@ -82,32 +77,33 @@ if [ ! -f ./shared/result.json ]; then
 fi
 
 compare_json
-
-rm -f ./shared/result.json ./shared/result_publisher.json
+clean_shared
 print_banner "${GREEN}" "TESTS DE INTEGRACIÓN PYTHON -> GO COMPLETADOS"
 
-
-
+# ----------------------------
+# GO -> PYTHON
+# ----------------------------
 print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN GO -> PYTHON"
-rm -f ./shared/result.json
-docker-compose up integration_python_sub integration_go_pub
+clean_shared
+
+PUBSUB_ENDPOINT=tcp://integration_go_pub:5555 docker-compose up integration_python_sub integration_go_pub
 
 if [ ! -f ./shared/result.json ]; then
-  echo -e "${RED}❌ No se generó el archivo de resultado en la integración GO -> PYTHON ${NC}"
+  echo -e "${RED}❌ No se generó el archivo de resultado en la integración GO -> PYTHON${NC}"
   exit 1
 fi
 
 compare_json
-
-rm -f ./shared/result.json ./shared/result_publisher.json
+clean_shared
 print_banner "${GREEN}" "TESTS DE INTEGRACIÓN GO -> PYTHON COMPLETADOS"
 
-
-
+# ----------------------------
+# C++ -> C++
+# ----------------------------
 print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN C++ -> C++"
+clean_shared
 
-rm -f ./shared/result.json ./shared/result_publisher.json
-docker-compose up integration_cpp_pub integration_cpp_sub
+PUBSUB_ENDPOINT=tcp://integration_cpp_pub:5555 docker-compose up integration_cpp_pub integration_cpp_sub
 
 if [ ! -f ./shared/result.json ]; then
   echo -e "${RED}❌ No se generó el archivo de resultado en la integración C++ -> C++${NC}"
@@ -115,7 +111,10 @@ if [ ! -f ./shared/result.json ]; then
 fi
 
 compare_json
-
-rm -rf shared/  
-
+clean_shared
 print_banner "${GREEN}" "TESTS DE INTEGRACIÓN C++ -> C++ COMPLETADOS"
+
+# ============================
+# FINALIZACIÓN
+# ============================
+print_banner "${GREEN}" "TODOS LOS TESTS FINALIZADOS CORRECTAMENTE 🎉"

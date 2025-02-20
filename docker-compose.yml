@@ -1,18 +1,25 @@
 version: "3.8"
 
+# -----------------------------
+# RED PRIVADA PARA INTEGRACIÓN
+# -----------------------------
 networks:
   pubsub_net:
     driver: bridge
 
-
+# -----------------------------
+# TESTS UNITARIOS
+# -----------------------------
 services:
+  # 🔵 TESTS UNITARIOS GO
   go_unit_tests:
     build: ./src/go
     image: go_pubsub:latest
     volumes:
       - ./src/go:/app
-    command: go test -v ./tests/unit/  # 🔹 Ejecuta solo los tests unitarios de Go
+    command: go test -v ./tests/unit/
 
+  # 🟠 TESTS UNITARIOS PYTHON
   python_unit_tests:
     build: ./src/python
     image: python_pubsub:latest
@@ -20,10 +27,30 @@ services:
     environment:
       - PYTHONPATH=/app/src/python
     volumes:
-      - ./:/app
-    command: pytest src/python/tests/unit/  # 🔹 Ejecuta solo los tests unitarios de Python
+      - ./:/app  # Se monta todo porque los tests usan assets y compartidos
+    command: pytest src/python/tests/unit/
 
+  # 🔴 TESTS UNITARIOS C++
+  cpp_build:
+    build: ./src/cpp
+    image: cpp_pubsub:latest
+    volumes:
+      - ./src/cpp:/app
+      - ./shared:/shared
+    command: sh -c "cd /app && rm -rf build && mkdir -p build && cd build && cmake .. && make -j8"
 
+  cpp_unit_tests:
+    image: cpp_pubsub:latest
+    volumes:
+      - ./shared:/shared
+    depends_on:
+      - cpp_build
+    command: sh -c "cd /app/build && ./test_pubsub --gtest_list_tests && ctest --output-on-failure"
+
+# -----------------------------
+# TESTS DE INTEGRACIÓN
+# -----------------------------
+  # 🟠 PYTHON PUBLISHER
   integration_python_pub:
     image: python_pubsub:latest
     working_dir: /app
@@ -37,6 +64,7 @@ services:
       - ./shared:/shared
     command: python3 tests/integration/main_publisher.py
 
+  # 🟠 PYTHON SUBSCRIBER (Configurable)
   integration_python_sub:
     image: python_pubsub:latest
     working_dir: /app
@@ -44,25 +72,13 @@ services:
       - pubsub_net
     environment:
       - PYTHONPATH=/app/src/python
-      - PUBSUB_ENDPOINT=tcp://integration_go_pub:5555
+      - PUBSUB_ENDPOINT=${PUBSUB_ENDPOINT}
     volumes:
       - ./src/python:/app
       - ./shared:/shared
     command: python3 tests/integration/main_subscriber.py
 
-  integration_go_sub:
-    image: go_pubsub:latest
-    networks:
-      - pubsub_net
-    environment:
-      - PUBSUB_ENDPOINT=tcp://integration_python_pub:5555
-    volumes:
-      - ./src/go:/app
-      - ./assets:/assets
-      - ./shared:/shared
-    command: go run /app/tests/integration/main_subscriber.go
-
-
+  # 🔵 GO PUBLISHER
   integration_go_pub:
     image: go_pubsub:latest
     networks:
@@ -72,25 +88,20 @@ services:
       - ./shared:/shared
     command: go run /app/tests/integration/main_publisher.go
 
-
-
-  cpp_build:
-    build: ./src/cpp
-    image: cpp_pubsub:latest 
+  # 🔵 GO SUBSCRIBER (Configurable)
+  integration_go_sub:
+    image: go_pubsub:latest
+    networks:
+      - pubsub_net
+    environment:
+      - PUBSUB_ENDPOINT=${PUBSUB_ENDPOINT}
     volumes:
-      - ./src/cpp:/app
+      - ./src/go:/app
+      - ./assets:/assets
       - ./shared:/shared
-    command: sh -c "cd /app && rm -rf build && mkdir -p build && cd build && cmake .. && make -j8"
+    command: go run /app/tests/integration/main_subscriber.go
 
-
-  cpp_unit_tests:
-    image: cpp_pubsub:latest
-    volumes:
-      - ./shared:/shared
-    depends_on:
-      - cpp_build
-    command: sh -c "cd /app/build && ./test_pubsub --gtest_list_tests && ctest --output-on-failure"
-
+  # 🔴 C++ PUBLISHER
   integration_cpp_pub:
     image: cpp_pubsub:latest
     networks:
@@ -101,6 +112,7 @@ services:
       - cpp_build
     command: /app/build/main_publisher
 
+  # 🔴 C++ SUBSCRIBER (Configurable)
   integration_cpp_sub:
     image: cpp_pubsub:latest
     networks:
@@ -110,5 +122,5 @@ services:
     depends_on:
       - cpp_build
     environment:
-      - PUBSUB_ENDPOINT=tcp://integration_cpp_pub:5555
+      - PUBSUB_ENDPOINT=${PUBSUB_ENDPOINT}
     command: /app/build/main_subscriber
