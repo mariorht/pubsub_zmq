@@ -2,39 +2,43 @@
 #include <thread>
 #include <chrono>
 #include <fstream>
-#include <sstream>
+#include <iostream>
+#include <nlohmann/json.hpp>
 
-using namespace std::chrono_literals;
-
-std::string build_json(const std::string& key, int index) {
-    std::stringstream json;
-    json << "{"
-         << "\"key\":\"" << key << "\","
-         << "\"index\":" << index
-         << "}";
-    return json.str();
-}
+using json = nlohmann::json;
 
 int main() {
     Publisher pub("tcp://*:5559");
 
-    using namespace std::chrono_literals;  // Habilita el sufijo "ms"
-    std::this_thread::sleep_for(2000ms);
+    zmq_sleep(2);
 
-    std::string lastMessage;
+    json lastMessage;
 
-    for (int i = 0; i < 1; i++) {
-        lastMessage = build_json("probando", i);
-        pub.publish(lastMessage);
+    for (int i = 0; i < 1; ++i) {
+        std::map<std::string, std::string> data = {
+            {"key", "probando"},
+            {"index", std::to_string(i)}
+        };
 
-        // Escribir el último mensaje enviado en /shared/result_publisher.json
+        auto message_chunks = pub.build_message(data);
+        pub.publish_message(message_chunks);
+
+        // Guardar el mensaje completo como lo construye build_message
+        lastMessage["type"] = "images";
+        lastMessage["count"] = 0;
+        lastMessage["images"] = json::array();
+        lastMessage["data"] = data;
+
         std::ofstream file("/shared/result_publisher.json");
         if (file.is_open()) {
-            file << lastMessage;
+            file << lastMessage.dump(4); // Bonito
             file.close();
+            std::cout << "✅ Mensaje enviado guardado en /shared/result_publisher.json" << std::endl;
+        } else {
+            std::cerr << "❌ Error al escribir /shared/result_publisher.json" << std::endl;
         }
 
-        std::this_thread::sleep_for(1s);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     return 0;
