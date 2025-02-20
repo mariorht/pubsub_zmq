@@ -90,6 +90,10 @@ compare_json() {
 
 
 print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN C++ -> C++"
+
+
+docker-compose run --rm cpp_build
+
 rm -f ./shared/result.json ./shared/result_publisher.json
 docker-compose up integration_cpp_pub integration_cpp_sub
 

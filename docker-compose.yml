@@ -55,17 +55,25 @@ services:
     command: python3 tests/integration/main_subscriber.py
 
 
+  cpp_build:
+    build: ./src/cpp
+    volumes:
+      - ./src/cpp:/app
+      - ./shared:/shared
+    command: sh -c "rm -rf build && mkdir -p build && cd build && cmake .. && make"
+
   integration_cpp_pub:
     build: ./src/cpp
     volumes:
-      - ./src/cpp:/app  # Monta TODO, pero recompila
       - ./shared:/shared
-    command: sh -c "rm -rf build && mkdir -p build && cd build && cmake .. && make && ./main_publisher"
-
+    depends_on:
+      - cpp_build
+    command: /app/build/main_publisher
 
   integration_cpp_sub:
     build: ./src/cpp
     volumes:
-      - ./src/cpp:/app  # Monta TODO, pero recompila
       - ./shared:/shared
-    command: sh -c "rm -rf build && mkdir -p build && cd build && cmake .. && make && ./main_subscriber"
+    depends_on:
+      - cpp_build
+    command: /app/build/main_subscriber
