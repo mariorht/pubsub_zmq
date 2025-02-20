@@ -21,7 +21,7 @@ echo -e "\n"
 print_banner "${BLUE}" "INICIANDO TESTS UNITARIOS DE GO"
 echo -e "\n"
 
-docker-compose run --rm go
+docker-compose run --rm go_unit_tests
 
 echo -e "\n"
 print_banner "${GREEN}" "TESTS UNITARIOS DE GO COMPLETADOS"
@@ -30,7 +30,7 @@ echo -e "\n"
 print_banner "${YELLOW}" "INICIANDO TESTS UNITARIOS DE PYTHON"
 echo -e "\n"
 
-docker-compose run --rm python
+docker-compose run --rm python_unit_tests
 
 echo -e "\n"
 print_banner "${GREEN}" "TESTS UNITARIOS DE PYTHON COMPLETADOS"

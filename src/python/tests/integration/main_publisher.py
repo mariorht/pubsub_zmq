@@ -10,7 +10,7 @@ from publisher import Publisher
 
 
 if __name__ == "__main__":
-    pub = Publisher(address="tcp://integration_python_pub:5559", topic="test") #Nombre de red del docker
+    pub = Publisher(address="tcp://*:5559", topic="test") #Nombre de red del docker
     angle = 0
 
     try:

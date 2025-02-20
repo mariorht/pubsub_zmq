@@ -3,9 +3,12 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <opencv2/opencv.hpp>
+#include <cstdlib> // Para getenv
 
 int main() {
-    Subscriber sub("tcp://integration_cpp_pub:5559");
+    const char* env_endpoint = std::getenv("PUBSUB_ENDPOINT");
+    std::string endpoint = env_endpoint ? env_endpoint : "tcp://localhost:5559";
+    Subscriber sub(endpoint);
 
     nlohmann::json lastMessage;
 

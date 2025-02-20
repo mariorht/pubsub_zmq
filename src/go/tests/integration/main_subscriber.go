@@ -10,9 +10,12 @@ import (
 )
 
 func main() {
-	endpoint := "tcp://integration_python_pub:5559" //El nombre del docker
+	endpoint := os.Getenv("PUBSUB_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "tcp://localhost:5559"
+	}	
+	
 	topic := "test"
-
 	sub, err := go_pubsub_zmq.NewSubscriber(endpoint, topic)
 	if err != nil {
 		log.Fatalf("❌ Error al crear Subscriber: %v", err)

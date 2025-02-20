@@ -9,7 +9,9 @@ from subscriber import Subscriber
 
 
 if __name__ == "__main__":
-    sub = Subscriber(address="tcp://integration_go_pub:5559", topic="test")
+    endpoint = os.getenv("PUBSUB_ENDPOINT", "tcp://localhost:5559")
+
+    sub = Subscriber(address=endpoint, topic="test")
 
     try:
         print("✅ Subscriber (Python) esperando mensajes...")

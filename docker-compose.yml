@@ -1,14 +1,19 @@
 version: "3.8"
 
+networks:
+  pubsub_net:
+    driver: bridge
+
+
 services:
-  go:
+  go_unit_tests:
     build: ./src/go
     image: go_pubsub:latest
     volumes:
       - ./src/go:/app
     command: go test -v ./tests/unit/  # 🔹 Ejecuta solo los tests unitarios de Go
 
-  python:
+  python_unit_tests:
     build: ./src/python
     image: python_pubsub:latest
     working_dir: /app
@@ -22,6 +27,8 @@ services:
   integration_python_pub:
     image: python_pubsub:latest
     working_dir: /app
+    networks:
+      - pubsub_net
     environment:
       - PYTHONPATH=/app/src/python
     volumes:
@@ -33,8 +40,11 @@ services:
   integration_python_sub:
     image: python_pubsub:latest
     working_dir: /app
+    networks:
+      - pubsub_net
     environment:
       - PYTHONPATH=/app/src/python
+      - PUBSUB_ENDPOINT=tcp://integration_go_pub:5559
     volumes:
       - ./src/python:/app
       - ./shared:/shared
@@ -42,6 +52,10 @@ services:
 
   integration_go_sub:
     image: go_pubsub:latest
+    networks:
+      - pubsub_net
+    environment:
+      - PUBSUB_ENDPOINT=tcp://integration_python_pub:5559
     volumes:
       - ./src/go:/app
       - ./assets:/assets
@@ -51,6 +65,8 @@ services:
 
   integration_go_pub:
     image: go_pubsub:latest
+    networks:
+      - pubsub_net
     volumes:
       - ./src/go:/app
       - ./shared:/shared
@@ -77,6 +93,8 @@ services:
 
   integration_cpp_pub:
     image: cpp_pubsub:latest
+    networks:
+      - pubsub_net
     volumes:
       - ./shared:/shared
     depends_on:
@@ -85,8 +103,12 @@ services:
 
   integration_cpp_sub:
     image: cpp_pubsub:latest
+    networks:
+      - pubsub_net
     volumes:
       - ./shared:/shared
     depends_on:
       - cpp_build
+    environment:
+      - PUBSUB_ENDPOINT=tcp://integration_cpp_pub:5559
     command: /app/build/main_subscriber
