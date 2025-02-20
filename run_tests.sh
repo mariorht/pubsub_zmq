@@ -40,8 +40,10 @@ echo -e "\n"
 print_banner "${YELLOW}" "INICIANDO TESTS UNITARIOS DE C++"
 echo -e "\n"
 
+docker-compose build cpp_build
 docker-compose run --rm cpp_build
 docker-compose run --rm cpp_unit_tests
+
 
 
 echo -e "\n"

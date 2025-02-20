@@ -64,7 +64,7 @@ services:
     volumes:
       - ./src/cpp:/app
       - ./shared:/shared
-    command: sh -c "rm -rf build && mkdir -p build && cd build && cmake .. && make"
+    command: sh -c "cd /app && rm -rf build && mkdir -p build && cd build && cmake .. && make -j8"
 
 
   cpp_unit_tests:
@@ -73,7 +73,7 @@ services:
       - ./shared:/shared
     depends_on:
       - cpp_build
-    command: sh -c "cd /app/build && ctest --output-on-failure"
+    command: sh -c "cd /app/build && ./test_pubsub --gtest_list_tests && ctest --output-on-failure"
 
   integration_cpp_pub:
     image: cpp_pubsub:latest
