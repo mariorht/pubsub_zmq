@@ -15,7 +15,7 @@ using json = nlohmann::json;
 
 
 TEST(PubSubTest, MensajeUnico) {
-    const std::string endpoint = "tcp://127.0.0.1:5559";
+    const std::string endpoint = "tcp://127.0.0.1:5555";
     const std::string topic = "test";
     const size_t chunk_size = 1024;
 

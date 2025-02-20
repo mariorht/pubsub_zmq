@@ -44,7 +44,7 @@ services:
       - pubsub_net
     environment:
       - PYTHONPATH=/app/src/python
-      - PUBSUB_ENDPOINT=tcp://integration_go_pub:5559
+      - PUBSUB_ENDPOINT=tcp://integration_go_pub:5555
     volumes:
       - ./src/python:/app
       - ./shared:/shared
@@ -55,7 +55,7 @@ services:
     networks:
       - pubsub_net
     environment:
-      - PUBSUB_ENDPOINT=tcp://integration_python_pub:5559
+      - PUBSUB_ENDPOINT=tcp://integration_python_pub:5555
     volumes:
       - ./src/go:/app
       - ./assets:/assets
@@ -110,5 +110,5 @@ services:
     depends_on:
       - cpp_build
     environment:
-      - PUBSUB_ENDPOINT=tcp://integration_cpp_pub:5559
+      - PUBSUB_ENDPOINT=tcp://integration_cpp_pub:5555
     command: /app/build/main_subscriber

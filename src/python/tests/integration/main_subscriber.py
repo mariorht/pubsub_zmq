@@ -9,7 +9,7 @@ from subscriber import Subscriber
 
 
 if __name__ == "__main__":
-    endpoint = os.getenv("PUBSUB_ENDPOINT", "tcp://localhost:5559")
+    endpoint = os.getenv("PUBSUB_ENDPOINT", "tcp://localhost:5555")
 
     sub = Subscriber(address=endpoint, topic="test")
 

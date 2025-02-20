@@ -7,7 +7,7 @@
 
 int main() {
     const char* env_endpoint = std::getenv("PUBSUB_ENDPOINT");
-    std::string endpoint = env_endpoint ? env_endpoint : "tcp://localhost:5559";
+    std::string endpoint = env_endpoint ? env_endpoint : "tcp://localhost:5555";
     Subscriber sub(endpoint);
 
     nlohmann::json lastMessage;

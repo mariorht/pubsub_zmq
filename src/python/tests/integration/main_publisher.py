@@ -10,7 +10,7 @@ from publisher import Publisher
 
 
 if __name__ == "__main__":
-    pub = Publisher(address="tcp://*:5559", topic="test") #Nombre de red del docker
+    pub = Publisher(address="tcp://*:5555", topic="test") #Nombre de red del docker
     angle = 0
 
     try:
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         assert frame is not None, f"❌ No se pudo cargar la imagen: /assets/pong.png"
 
         print("✅ Publicador creado. Esperando que se conecten los suscriptores...")
-        time.sleep(2)
+        time.sleep(5)
 
         for i in range(1):
             frames = []

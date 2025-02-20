@@ -8,7 +8,7 @@
 using json = nlohmann::json;
 
 int main() {
-    Publisher pub("tcp://*:5559");
+    Publisher pub("tcp://*:5555");
 
     zmq_sleep(2);
 

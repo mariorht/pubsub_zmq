@@ -9,7 +9,7 @@ import (
 )
 
 func TestPubSubMensajeUnico(t *testing.T) {
-	endpoint := "tcp://127.0.0.1:5559"
+	endpoint := "tcp://127.0.0.1:5555"
 	topic := "test"
 	chunkSize := 1024
 

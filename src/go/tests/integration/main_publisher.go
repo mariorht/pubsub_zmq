@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	endpoint := "tcp://*:5559"
+	endpoint := "tcp://*:5555"
 	topic := "test"
 	chunkSize := 1024
 

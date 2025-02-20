@@ -12,7 +12,7 @@ import (
 func main() {
 	endpoint := os.Getenv("PUBSUB_ENDPOINT")
 	if endpoint == "" {
-		endpoint = "tcp://localhost:5559"
+		endpoint = "tcp://localhost:5555"
 	}	
 	
 	topic := "test"
