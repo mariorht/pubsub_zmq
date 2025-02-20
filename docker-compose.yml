@@ -61,6 +61,15 @@ services:
       - ./src/cpp:/app
       - ./shared:/shared
     command: sh -c "rm -rf build && mkdir -p build && cd build && cmake .. && make"
+    
+  cpp_unit_tests:
+    build: ./src/cpp
+    volumes:
+      - ./shared:/shared
+    depends_on:
+      - cpp_build
+    command: sh -c "cd /app/build && ctest --output-on-failure"
+
 
   integration_cpp_pub:
     build: ./src/cpp

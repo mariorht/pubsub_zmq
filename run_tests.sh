@@ -17,24 +17,37 @@ print_banner() {
   echo -e "${color}${border}${NC}"
 }
 
-# echo -e "\n"
-# print_banner "${BLUE}" "INICIANDO TESTS UNITARIOS DE GO"
-# echo -e "\n"
+echo -e "\n"
+print_banner "${BLUE}" "INICIANDO TESTS UNITARIOS DE GO"
+echo -e "\n"
 
-# docker-compose run --rm go
+docker-compose run --rm go
 
-# echo -e "\n"
-# print_banner "${GREEN}" "TESTS UNITARIOS DE GO COMPLETADOS"
-# echo -e "\n"
+echo -e "\n"
+print_banner "${GREEN}" "TESTS UNITARIOS DE GO COMPLETADOS"
+echo -e "\n"
 
-# print_banner "${YELLOW}" "INICIANDO TESTS UNITARIOS DE PYTHON"
-# echo -e "\n"
+print_banner "${YELLOW}" "INICIANDO TESTS UNITARIOS DE PYTHON"
+echo -e "\n"
 
-# docker-compose run --rm python
+docker-compose run --rm python
 
-# echo -e "\n"
-# print_banner "${GREEN}" "TESTS UNITARIOS DE PYTHON COMPLETADOS"
-# echo -e "\n"
+echo -e "\n"
+print_banner "${GREEN}" "TESTS UNITARIOS DE PYTHON COMPLETADOS"
+echo -e "\n"
+
+
+print_banner "${YELLOW}" "INICIANDO TESTS UNITARIOS DE C++"
+echo -e "\n"
+
+docker-compose run --rm cpp_build
+docker-compose up cpp_unit_tests
+
+
+echo -e "\n"
+print_banner "${GREEN}" "TESTS UNITARIOS DE C++ COMPLETADOS"
+echo -e "\n"
+
 
 
 
@@ -58,41 +71,38 @@ compare_json() {
 
 
 
-# print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN PYTHON -> GO"
-# docker-compose up integration_python_pub integration_go_sub
+print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN PYTHON -> GO"
+docker-compose up integration_python_pub integration_go_sub
 
-# if [ ! -f ./shared/result.json ]; then
-#   echo -e "${RED}❌ No se generó el archivo de resultado en la integración PYTHON -> GO${NC}"
-#   exit 1
-# fi
+if [ ! -f ./shared/result.json ]; then
+  echo -e "${RED}❌ No se generó el archivo de resultado en la integración PYTHON -> GO${NC}"
+  exit 1
+fi
 
-# compare_json
+compare_json
 
-# rm -f ./shared/result.json ./shared/result_publisher.json
-# print_banner "${GREEN}" "TESTS DE INTEGRACIÓN PYTHON -> GO COMPLETADOS"
+rm -f ./shared/result.json ./shared/result_publisher.json
+print_banner "${GREEN}" "TESTS DE INTEGRACIÓN PYTHON -> GO COMPLETADOS"
 
 
 
-# print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN GO -> PYTHON"
-# rm -f ./shared/result.json
-# docker-compose up integration_python_sub integration_go_pub
+print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN GO -> PYTHON"
+rm -f ./shared/result.json
+docker-compose up integration_python_sub integration_go_pub
 
-# if [ ! -f ./shared/result.json ]; then
-#   echo -e "${RED}❌ No se generó el archivo de resultado en la integración GO -> PYTHON ${NC}"
-#   exit 1
-# fi
+if [ ! -f ./shared/result.json ]; then
+  echo -e "${RED}❌ No se generó el archivo de resultado en la integración GO -> PYTHON ${NC}"
+  exit 1
+fi
 
-# compare_json
+compare_json
 
-# rm -f ./shared/result.json ./shared/result_publisher.json
-# print_banner "${GREEN}" "TESTS DE INTEGRACIÓN GO -> PYTHON COMPLETADOS"
+rm -f ./shared/result.json ./shared/result_publisher.json
+print_banner "${GREEN}" "TESTS DE INTEGRACIÓN GO -> PYTHON COMPLETADOS"
 
 
 
 print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN C++ -> C++"
-
-
-docker-compose run --rm cpp_build
 
 rm -f ./shared/result.json ./shared/result_publisher.json
 docker-compose up integration_cpp_pub integration_cpp_sub

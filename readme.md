@@ -1,5 +1,7 @@
 # PubSub ZMQ Project
 
+# 🏗️🚧 WORK IN PROGRESS 🚧🏗️
+
 Este proyecto contiene librerías que facilitan la publicación y suscripción de mensajes que contienen múltiples imágenes y datos adicionales utilizando ZeroMQ. La biblioteca está diseñada para manejar grandes datos binarios de manera eficiente mediante la fragmentación de mensajes en partes más pequeñas.
 
 ## Estado del Proyecto

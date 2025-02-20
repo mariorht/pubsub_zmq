@@ -17,3 +17,12 @@ add_executable(main_subscriber tests/integration/main_subscriber.cpp src/subscri
 # Linkear con ZeroMQ
 target_link_libraries(main_publisher zmq)
 target_link_libraries(main_subscriber zmq)
+
+
+enable_testing()
+
+add_executable(test_pubsub tests/unit/test_pubsub.cpp src/publisher.cpp src/subscriber.cpp)
+target_link_libraries(test_pubsub zmq gtest gtest_main pthread)
+
+add_test(NAME PubSubTests COMMAND test_pubsub)
+

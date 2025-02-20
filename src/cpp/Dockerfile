@@ -5,7 +5,11 @@ RUN apt-get update && apt-get install -y \
     cmake \
     g++ \
     libzmq3-dev \
-    make
+    make \
+    libgtest-dev
+
+# Compilar GoogleTest ya que no trae los binarios precompilados
+RUN cd /usr/src/gtest && cmake . && make && cp lib/*.a /usr/lib/
 
 # Crear directorio de trabajo
 WORKDIR /app
