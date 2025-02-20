@@ -41,7 +41,7 @@ print_banner "${YELLOW}" "INICIANDO TESTS UNITARIOS DE C++"
 echo -e "\n"
 
 docker-compose run --rm cpp_build
-docker-compose up cpp_unit_tests
+docker-compose run --rm cpp_unit_tests
 
 
 echo -e "\n"

@@ -1,8 +1,6 @@
 #include "publisher.hpp"
-#include <iostream>
-#include <sstream>
 #include <nlohmann/json.hpp>
-#include <cstring>
+#include <iostream>
 
 using json = nlohmann::json;
 
@@ -12,18 +10,40 @@ Publisher::Publisher(const std::string& address, const std::string& topic, size_
     std::cout << "✅ Publisher C++ conectado en " << address << " con topic: " << topic << std::endl;
 }
 
-std::vector<std::string> Publisher::build_message(const std::map<std::string, std::string>& data) {
+std::vector<std::string> Publisher::build_message(const std::vector<cv::Mat>& frames, const std::map<std::string, std::string>& data) {
     json message_json;
-    message_json["type"] = "images";  // De momento seguimos diciendo que es "images" para mantener el protocolo
-    message_json["count"] = 0;        // No hay imágenes
-    message_json["images"] = json::array();  // Lista vacía
+    std::vector<std::string> images_data;
+    json images_metadata = json::array();
+
+    for (const auto& frame : frames) {
+        std::vector<uchar> buffer(frame.data, frame.data + frame.total() * frame.elemSize());
+        images_data.push_back(std::string(buffer.begin(), buffer.end()));
+
+        json meta;
+        meta["format"] = "raw";
+        meta["width"] = frame.cols;
+        meta["height"] = frame.rows;
+        meta["channels"] = frame.channels();
+        meta["dtype"] = "uint8";
+        meta["size"] = buffer.size();
+        images_metadata.push_back({{"metadata", meta}});
+    }
+
+    message_json["type"] = "images";
+    message_json["count"] = frames.size();
+    message_json["images"] = images_metadata;
     message_json["data"] = data;
 
-    std::string message_str = message_json.dump();
+    std::string header = message_json.dump();
     std::vector<std::string> chunks;
 
-    for (size_t i = 0; i < message_str.size(); i += chunk_size) {
-        chunks.push_back(message_str.substr(i, chunk_size));
+    std::string messageBytes = header + '\0';
+    for (const auto& img : images_data) {
+        messageBytes += img;
+    }
+
+    for (size_t i = 0; i < messageBytes.size(); i += chunk_size) {
+        chunks.push_back(messageBytes.substr(i, chunk_size));
     }
 
     return chunks;

@@ -5,6 +5,8 @@ RUN apt-get update && apt-get install -y \
     cmake \
     g++ \
     libzmq3-dev \
+    libopencv-dev \
+    pkg-config \
     make \
     libgtest-dev
 

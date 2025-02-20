@@ -3,12 +3,14 @@ version: "3.8"
 services:
   go:
     build: ./src/go
+    image: go_pubsub:latest
     volumes:
       - ./src/go:/app
     command: go test -v ./tests/unit/  # 🔹 Ejecuta solo los tests unitarios de Go
 
   python:
     build: ./src/python
+    image: python_pubsub:latest
     working_dir: /app
     environment:
       - PYTHONPATH=/app/src/python
@@ -18,7 +20,7 @@ services:
 
 
   integration_python_pub:
-    build: ./src/python
+    image: python_pubsub:latest
     working_dir: /app
     environment:
       - PYTHONPATH=/app/src/python
@@ -28,24 +30,8 @@ services:
       - ./shared:/shared
     command: python3 tests/integration/main_publisher.py
 
-  integration_go_sub:
-    build: ./src/go
-    volumes:
-      - ./src/go:/app
-      - ./assets:/assets
-      - ./shared:/shared
-    command: go run /app/tests/integration/main_subscriber.go
-
-
-  integration_go_pub:
-    build: ./src/go
-    volumes:
-      - ./src/go:/app
-      - ./shared:/shared
-    command: go run /app/tests/integration/main_publisher.go
-
   integration_python_sub:
-    build: ./src/python
+    image: python_pubsub:latest
     working_dir: /app
     environment:
       - PYTHONPATH=/app/src/python
@@ -54,25 +40,43 @@ services:
       - ./shared:/shared
     command: python3 tests/integration/main_subscriber.py
 
+  integration_go_sub:
+    image: go_pubsub:latest
+    volumes:
+      - ./src/go:/app
+      - ./assets:/assets
+      - ./shared:/shared
+    command: go run /app/tests/integration/main_subscriber.go
+
+
+  integration_go_pub:
+    image: go_pubsub:latest
+    volumes:
+      - ./src/go:/app
+      - ./shared:/shared
+    command: go run /app/tests/integration/main_publisher.go
+
+
 
   cpp_build:
     build: ./src/cpp
+    image: cpp_pubsub:latest 
     volumes:
       - ./src/cpp:/app
       - ./shared:/shared
     command: sh -c "rm -rf build && mkdir -p build && cd build && cmake .. && make"
-    
+
+
   cpp_unit_tests:
-    build: ./src/cpp
+    image: cpp_pubsub:latest
     volumes:
       - ./shared:/shared
     depends_on:
       - cpp_build
     command: sh -c "cd /app/build && ctest --output-on-failure"
 
-
   integration_cpp_pub:
-    build: ./src/cpp
+    image: cpp_pubsub:latest
     volumes:
       - ./shared:/shared
     depends_on:
@@ -80,7 +84,7 @@ services:
     command: /app/build/main_publisher
 
   integration_cpp_sub:
-    build: ./src/cpp
+    image: cpp_pubsub:latest
     volumes:
       - ./shared:/shared
     depends_on:

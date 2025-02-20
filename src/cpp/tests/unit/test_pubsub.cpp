@@ -4,6 +4,9 @@
 #include <thread>
 #include <chrono>
 #include <sstream>
+#include <vector>
+#include <map>
+#include <opencv2/opencv.hpp>
 
 using namespace std::chrono_literals;
 
@@ -22,16 +25,16 @@ TEST(PubSubTest, MensajeUnico) {
 
     std::thread publicador([&]() {
         std::this_thread::sleep_for(100ms);
-        auto chunks = pub.build_message(data);
+        auto chunks = pub.build_message({}, data); // Sin imágenes
         pub.publish_message(chunks);
     });
 
-    std::string mensajeRecibido;
+    std::pair<std::vector<cv::Mat>, std::map<std::string, std::string>> mensajeRecibido;
     bool recibido = false;
 
     for (int i = 0; i < 5; i++) {
         try {
-            mensajeRecibido = sub.receive();
+            mensajeRecibido = sub.receive_message();
             recibido = true;
             break;
         } catch (const std::exception& e) {
@@ -42,7 +45,7 @@ TEST(PubSubTest, MensajeUnico) {
     publicador.join();
 
     ASSERT_TRUE(recibido) << "No se recibió el mensaje después de varios intentos";
-    ASSERT_NE(mensajeRecibido.find(mensajeEsperado), std::string::npos) << "El mensaje recibido no contiene el esperado";
+    ASSERT_EQ(mensajeRecibido.second["msg"], mensajeEsperado) << "El mensaje recibido no coincide con el esperado";
 }
 
 TEST(PubSubTest, MultiplesMensajes) {
@@ -61,7 +64,8 @@ TEST(PubSubTest, MultiplesMensajes) {
     std::thread suscriptor([&]() {
         for (int i = 0; i < totalMensajes; i++) {
             try {
-                mensajesRecibidos[i] = sub.receive();
+                auto mensaje = sub.receive_message();
+                mensajesRecibidos[i] = mensaje.second["msg"];
             } catch (...) {
                 mensajesRecibidos[i] = "";
             }
@@ -73,7 +77,7 @@ TEST(PubSubTest, MultiplesMensajes) {
         ss << "Mensaje " << i;
         std::map<std::string, std::string> data = {{"msg", ss.str()}};
 
-        auto chunks = pub.build_message(data);
+        auto chunks = pub.build_message({}, data); // Sin imágenes
         pub.publish_message(chunks);
 
         std::this_thread::sleep_for(100ms);
@@ -85,6 +89,6 @@ TEST(PubSubTest, MultiplesMensajes) {
         ASSERT_FALSE(mensajesRecibidos[i].empty()) << "El mensaje " << i << " no fue recibido";
         std::ostringstream esperado;
         esperado << "Mensaje " << i;
-        ASSERT_NE(mensajesRecibidos[i].find(esperado.str()), std::string::npos) << "El mensaje recibido no contiene el esperado";
+        ASSERT_EQ(mensajesRecibidos[i], esperado.str()) << "El mensaje recibido no coincide con el esperado";
     }
 }

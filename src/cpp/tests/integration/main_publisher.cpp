@@ -20,7 +20,8 @@ int main() {
             {"index", std::to_string(i)}
         };
 
-        auto message_chunks = pub.build_message(data);
+        std::vector<cv::Mat> frames;
+        auto message_chunks = pub.build_message(frames, data);
         pub.publish_message(message_chunks);
 
         // Guardar el mensaje completo como lo construye build_message
