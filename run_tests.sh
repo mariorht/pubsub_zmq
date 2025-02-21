@@ -38,6 +38,21 @@ compare_json() {
   fi
 }
 
+check_files_exist() {
+  if [ ! -f "./shared/result_publisher.json" ]; then
+    echo -e "${RED}❌ El archivo result_publisher.json no existe${NC}"
+    exit 1
+  fi
+
+  if [ ! -f "./shared/result.json" ]; then
+    echo -e "${RED}❌ El archivo result.json no existe${NC}"
+    exit 1
+  fi
+
+  echo -e "${GREEN}✅ Ambos archivos existen${NC}"
+}
+
+
 clean_shared() {
   rm -f ./shared/result.json ./shared/result_publisher.json
 }
@@ -77,6 +92,8 @@ if [ ! -f ./shared/result.json ]; then
 fi
 
 # compare_json
+check_files_exist
+
 clean_shared
 print_banner "${GREEN}" "TESTS DE INTEGRACIÓN PYTHON -> GO COMPLETADOS"
 
@@ -128,6 +145,7 @@ if [ ! -f ./shared/result.json ]; then
 fi
 
 # compare_json
+check_files_exist
 clean_shared
 print_banner "${GREEN}" "TESTS DE INTEGRACIÓN GO -> C++ COMPLETADOS"
 
