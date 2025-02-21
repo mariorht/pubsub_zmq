@@ -42,6 +42,13 @@ func main() {
 		} else {
 			fmt.Printf("📤 Mensaje %d enviado con data: %v\n", i, data)
 
+			lastMessage := map[string]interface{}{
+				"type":   "images",
+				"count":  0,
+				"images": []interface{}{},
+				"data":   data,
+			}
+
 			// Guardar el último mensaje enviado
 			file, err := os.Create("/shared/result_publisher.json")
 			if err != nil {
@@ -49,7 +56,7 @@ func main() {
 				continue
 			}
 			encoder := json.NewEncoder(file)
-			_ = encoder.Encode(data)
+			_ = encoder.Encode(lastMessage)
 			file.Close()
 		}
 

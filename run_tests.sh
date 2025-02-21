@@ -117,53 +117,53 @@ print_banner "${GREEN}" "TESTS DE INTEGRACIÓN GO -> PYTHON COMPLETADOS"
 # ----------------------------
 # GO -> C++
 # ----------------------------
-# print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN GO -> C++"
-# clean_shared
+print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN GO -> C++"
+clean_shared
 
-# PUBSUB_ENDPOINT=tcp://integration_go_pub:5555 docker-compose up integration_cpp_sub integration_go_pub
+PUBSUB_ENDPOINT=tcp://integration_go_pub:5555 docker-compose up integration_cpp_sub integration_go_pub
 
-# if [ ! -f ./shared/result.json ]; then
-#   echo -e "${RED}❌ No se generó el archivo de resultado en la integración GO -> C++${NC}"
-#   exit 1
-# fi
+if [ ! -f ./shared/result.json ]; then
+  echo -e "${RED}❌ No se generó el archivo de resultado en la integración GO -> C++${NC}"
+  exit 1
+fi
 
-# # compare_json
-# clean_shared
-# print_banner "${GREEN}" "TESTS DE INTEGRACIÓN GO -> C++ COMPLETADOS"
+# compare_json
+clean_shared
+print_banner "${GREEN}" "TESTS DE INTEGRACIÓN GO -> C++ COMPLETADOS"
 
 # ----------------------------
 # C++ -> PYTHON
 # ----------------------------
-# print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN C++ -> PYTHON"
-# clean_shared
+print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN C++ -> PYTHON"
+clean_shared
 
-# PUBSUB_ENDPOINT=tcp://integration_cpp_pub:5555 docker-compose up integration_cpp_pub integration_python_sub
+PUBSUB_ENDPOINT=tcp://integration_cpp_pub:5555 docker-compose up integration_cpp_pub integration_python_sub
 
-# if [ ! -f ./shared/result.json ]; then
-#   echo -e "${RED}❌ No se generó el archivo de resultado en la integración C++ -> PYTHON${NC}"
-#   exit 1
-# fi
+if [ ! -f ./shared/result.json ]; then
+  echo -e "${RED}❌ No se generó el archivo de resultado en la integración C++ -> PYTHON${NC}"
+  exit 1
+fi
 
-# compare_json
-# clean_shared
-# print_banner "${GREEN}" "TESTS DE INTEGRACIÓN C++ -> PYTHON COMPLETADOS"
+compare_json
+clean_shared
+print_banner "${GREEN}" "TESTS DE INTEGRACIÓN C++ -> PYTHON COMPLETADOS"
 
 # # ----------------------------
 # # C++ -> GO
 # # ----------------------------
-# print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN C++ -> GO"
-# clean_shared
+print_banner "${YELLOW}" "INICIANDO TESTS DE INTEGRACIÓN C++ -> GO"
+clean_shared
 
-# PUBSUB_ENDPOINT=tcp://integration_cpp_pub:5555 docker-compose up integration_cpp_pub integration_go_sub
+PUBSUB_ENDPOINT=tcp://integration_cpp_pub:5555 docker-compose up integration_cpp_pub integration_go_sub
 
-# if [ ! -f ./shared/result.json ]; then
-#   echo -e "${RED}❌ No se generó el archivo de resultado en la integración C++ -> GO${NC}"
-#   exit 1
-# fi
+if [ ! -f ./shared/result.json ]; then
+  echo -e "${RED}❌ No se generó el archivo de resultado en la integración C++ -> GO${NC}"
+  exit 1
+fi
 
-# compare_json
-# clean_shared
-# print_banner "${GREEN}" "TESTS DE INTEGRACIÓN C++ -> GO COMPLETADOS"
+compare_json
+clean_shared
+print_banner "${GREEN}" "TESTS DE INTEGRACIÓN C++ -> GO COMPLETADOS"
 
 # ============================
 # FINALIZACIÓN

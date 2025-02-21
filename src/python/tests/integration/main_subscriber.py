@@ -19,17 +19,33 @@ if __name__ == "__main__":
         last_data = None
 
         for i in range(1):
-            images, data = sub.receive_message()
+            frames, data = sub.receive_message()
             print(f"📥 Mensaje {i} recibido: {data}")
 
-            if images:
-                print(f"⚠️ Recibidas {len(images)} imágenes (ignorado por ahora).")
+            if frames:
+                print(f"⚠️ Recibidas {len(frames)} imágenes (ignorado por ahora).")
 
             last_data = data
 
         if last_data is not None:
+            result = {
+                "type": "images",
+                "count": len(frames),
+                "images": [{
+                    "metadata": {
+                        "width": f.shape[1],
+                        "height": f.shape[0],
+                        "channels": f.shape[2] if len(f.shape) > 2 else 1,
+                        "dtype": str(f.dtype),
+                        "size": f.nbytes,
+                    }
+                } for f in frames],
+                "data": data
+            }
+
             with open("/shared/result.json", "w") as f:
-                json.dump(last_data, f)
+                json.dump(result, f, indent=4)
+
             print("✅ Resultado guardado en /shared/result.json")
 
     except Exception as e:

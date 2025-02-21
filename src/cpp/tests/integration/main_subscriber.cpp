@@ -26,7 +26,7 @@ nlohmann::json variant_map_to_json(const DataMap& data) {
 int main() {
     const char* env_endpoint = std::getenv("PUBSUB_ENDPOINT");
     std::string endpoint = env_endpoint ? env_endpoint : "tcp://localhost:5555";
-    Subscriber sub(endpoint);
+    Subscriber sub(endpoint, "test");
 
     nlohmann::json lastMessage;
 

@@ -13,7 +13,7 @@ using DataMap = std::unordered_map<std::string, ValueVariant>;
 
 class Subscriber {
 public:
-    Subscriber(const std::string &address);
+    Subscriber(const std::string &address, const std::string &topic);
     std::pair<std::vector<cv::Mat>, DataMap> receive_message();
     int numpy_dtype_to_opencv(const std::string& dtype, int channels);
 

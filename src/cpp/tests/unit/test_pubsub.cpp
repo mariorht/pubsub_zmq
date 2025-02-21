@@ -38,7 +38,7 @@ TEST(PubSubTest, MensajeUnico) {
     const size_t chunk_size = 1024;
 
     Publisher pub(endpoint, topic, chunk_size);
-    Subscriber sub(endpoint);
+    Subscriber sub(endpoint, topic);
 
     std::this_thread::sleep_for(500ms); // Espera para asegurar conexión
 
@@ -79,7 +79,7 @@ TEST(PubSubTest, MultiplesMensajes) {
     const size_t chunk_size = 1024;
 
     Publisher pub(endpoint, topic, chunk_size);
-    Subscriber sub(endpoint);
+    Subscriber sub(endpoint, topic);
 
     std::this_thread::sleep_for(500ms);
 
@@ -122,8 +122,8 @@ TEST(PubSubTest, MultiplesMensajes) {
 // TEST: Enviar y recibir imágenes reales
 // ======================================
 TEST(PubSubTest, EnviarYRecibirImagenReal) {
-    Publisher pub("tcp://127.0.0.1:5555");
-    Subscriber sub("tcp://127.0.0.1:5555");
+    Publisher pub("tcp://127.0.0.1:5555", "test");
+    Subscriber sub("tcp://127.0.0.1:5555", "test");
 
     // Imagen 10x10 con un degradado
     cv::Mat imagen_real(10, 10, CV_8UC3);

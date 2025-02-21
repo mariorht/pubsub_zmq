@@ -8,9 +8,9 @@
 using json = nlohmann::json;
 
 int main() {
-    Publisher pub("tcp://*:5555");
+    Publisher pub("tcp://*:5555", "test");
 
-    zmq_sleep(2);
+    zmq_sleep(5);
 
     json lastMessage;
 

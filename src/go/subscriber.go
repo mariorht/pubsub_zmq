@@ -61,6 +61,7 @@ func (s *Subscriber) ReceiveMessage() (*MessageReceived, error) {
 		if err != nil {
 			return nil, err
 		}
+		
 		// Se esperan 4 partes: [topic, fragment index, total fragments, chunk]
 		if len(parts) < 4 {
 			log.Println("Received incomplete message parts; skipping")

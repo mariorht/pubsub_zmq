@@ -97,8 +97,18 @@ func (p *Publisher) BuildMessage(frames []Frame, data map[string]interface{}) ([
 		Images: imagesMetadata,
 		Data:   data,
 	}
-	// Se genera el JSON. Dado que no se concatenan datos de imagen, no se agrega el separador nulo.
-	return json.Marshal(msg)
+
+	//Agregamos el separador nulo, pero no enviamos ninguna imagen aún
+	jsonBytes, err := json.Marshal(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Agregar el separador nulo ('\0')
+	jsonBytes = append(jsonBytes, 0)
+
+	return jsonBytes, nil
+
 }
 
 // PublishMessage envía el mensaje binario fragmentado en partes de tamaño ChunkSize.

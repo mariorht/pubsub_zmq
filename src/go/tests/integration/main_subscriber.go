@@ -40,6 +40,13 @@ func main() {
 	}
 
 	// Escribir el último mensaje recibido en un JSON en el volumen compartido
+	result := map[string]interface{}{
+		"type":   "images",
+		"count":  0,
+		"images": []interface{}{},
+		"data":   lastMessage,
+	}
+
 	file, err := os.Create("/shared/result.json")
 	if err != nil {
 		log.Fatalf("❌ Error al crear el archivo JSON: %v", err)
@@ -47,7 +54,7 @@ func main() {
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	err = encoder.Encode(lastMessage)
+	err = encoder.Encode(result)
 	if err != nil {
 		log.Fatalf("❌ Error al escribir JSON: %v", err)
 	}

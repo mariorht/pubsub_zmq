@@ -37,7 +37,8 @@ std::vector<std::string> Publisher::build_message(const std::vector<cv::Mat>& fr
     std::string header = message_json.dump();
     std::vector<std::string> chunks;
 
-    std::string messageBytes = header + '\0';
+    std::string messageBytes = header;
+    messageBytes.push_back('\0');
     for (const auto& img : images_data) {
         messageBytes += img;
     }

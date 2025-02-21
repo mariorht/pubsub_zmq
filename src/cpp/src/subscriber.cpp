@@ -7,10 +7,10 @@
 using json = nlohmann::json;
 
 
-Subscriber::Subscriber(const std::string &address)
+Subscriber::Subscriber(const std::string &address, const std::string &topic)
     : context(1), socket(context, zmq::socket_type::sub) {
     socket.connect(address);
-    socket.set(zmq::sockopt::subscribe, "");
+    socket.set(zmq::sockopt::subscribe, topic);
     std::cout << "✅ Subscriber C++ conectado a " << address << std::endl;
 }
 
