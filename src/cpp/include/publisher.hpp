@@ -15,6 +15,8 @@ public:
     std::vector<std::string> build_message(const std::vector<cv::Mat>& frames, const std::map<std::string, std::string>& data);
     void publish_message(const std::vector<std::string>& message_chunks);
 
+    static std::string mat_type_to_dtype_string(int mat_type);
+
 private:
     zmq::context_t context;
     zmq::socket_t socket;

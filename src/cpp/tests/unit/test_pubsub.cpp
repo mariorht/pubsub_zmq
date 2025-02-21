@@ -5,15 +5,33 @@
 #include <chrono>
 #include <sstream>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <opencv2/opencv.hpp>
 #include <nlohmann/json.hpp>
-
+#include <variant>
 
 using namespace std::chrono_literals;
 using json = nlohmann::json;
 
+// Definiciones para simplificar el acceso a std::variant
+using ValueVariant = std::variant<std::string, int, double, bool, std::nullptr_t>;
+using DataMap = std::unordered_map<std::string, ValueVariant>;
 
+// Función auxiliar para obtener std::string de ValueVariant
+std::string get_string(const DataMap& data, const std::string& key) {
+    auto it = data.find(key);
+    if (it == data.end()) {
+        throw std::runtime_error("Clave no encontrada: " + key);
+    }
+    if (!std::holds_alternative<std::string>(it->second)) {
+        throw std::runtime_error("Valor de '" + key + "' no es string");
+    }
+    return std::get<std::string>(it->second);
+}
+
+// ======================================
+// TEST: Envío y recepción de mensaje único con data
+// ======================================
 TEST(PubSubTest, MensajeUnico) {
     const std::string endpoint = "tcp://127.0.0.1:5555";
     const std::string topic = "test";
@@ -33,7 +51,7 @@ TEST(PubSubTest, MensajeUnico) {
         pub.publish_message(chunks);
     });
 
-    std::pair<std::vector<cv::Mat>, std::map<std::string, std::string>> mensajeRecibido;
+    std::pair<std::vector<cv::Mat>, DataMap> mensajeRecibido;
     bool recibido = false;
 
     for (int i = 0; i < 5; i++) {
@@ -49,9 +67,12 @@ TEST(PubSubTest, MensajeUnico) {
     publicador.join();
 
     ASSERT_TRUE(recibido) << "No se recibió el mensaje después de varios intentos";
-    ASSERT_EQ(mensajeRecibido.second["msg"], mensajeEsperado) << "El mensaje recibido no coincide con el esperado";
+    ASSERT_EQ(get_string(mensajeRecibido.second, "msg"), mensajeEsperado);
 }
 
+// ======================================
+// TEST: Envío y recepción de múltiples mensajes
+// ======================================
 TEST(PubSubTest, MultiplesMensajes) {
     const std::string endpoint = "tcp://127.0.0.1:5560";
     const std::string topic = "test";
@@ -69,7 +90,7 @@ TEST(PubSubTest, MultiplesMensajes) {
         for (int i = 0; i < totalMensajes; i++) {
             try {
                 auto mensaje = sub.receive_message();
-                mensajesRecibidos[i] = mensaje.second["msg"];
+                mensajesRecibidos[i] = get_string(mensaje.second, "msg");
             } catch (...) {
                 mensajesRecibidos[i] = "";
             }
@@ -93,14 +114,13 @@ TEST(PubSubTest, MultiplesMensajes) {
         ASSERT_FALSE(mensajesRecibidos[i].empty()) << "El mensaje " << i << " no fue recibido";
         std::ostringstream esperado;
         esperado << "Mensaje " << i;
-        ASSERT_EQ(mensajesRecibidos[i], esperado.str()) << "El mensaje recibido no coincide con el esperado";
+        ASSERT_EQ(mensajesRecibidos[i], esperado.str());
     }
 }
 
-
-
-
-
+// ======================================
+// TEST: Enviar y recibir imágenes reales
+// ======================================
 TEST(PubSubTest, EnviarYRecibirImagenReal) {
     Publisher pub("tcp://127.0.0.1:5555");
     Subscriber sub("tcp://127.0.0.1:5555");
@@ -116,47 +136,35 @@ TEST(PubSubTest, EnviarYRecibirImagenReal) {
     std::vector<cv::Mat> frames = {imagen_real};
     std::map<std::string, std::string> data = {{"tipo", "imagen_real_test"}};
 
-    // Enviar mensaje
-    auto chunks = pub.build_message(frames, data);
+    std::thread publicador([&]() {
+        std::this_thread::sleep_for(100ms);
+        auto chunks = pub.build_message(frames, data);
+        pub.publish_message(chunks);
+    });
 
-    // Simular recepción de multipart (topic, index, num_chunks, chunk)
-    // Vamos a juntar todo el mensaje de golpe (simulación simplificada)
-    std::string recibido;
-    for (const auto& chunk : chunks) {
-        recibido += chunk;
+    std::pair<std::vector<cv::Mat>, DataMap> mensajeRecibido;
+    bool recibido = false;
+
+    for (int i = 0; i < 5; ++i) {
+        try {
+            mensajeRecibido = sub.receive_message();
+            recibido = true;
+            break;
+        } catch (...) {
+            std::this_thread::sleep_for(100ms);
+        }
     }
 
-    // Procesar como si fuera recibido en el Subscriber
-    size_t pos = recibido.find('\0');
-    ASSERT_NE(pos, std::string::npos) << "No se encontró el separador \\0 en el mensaje";
+    publicador.join();
 
-    std::string header_json = recibido.substr(0, pos);
-    std::string images_data = recibido.substr(pos + 1);
+    ASSERT_TRUE(recibido) << "No se recibió el mensaje con imágenes después de varios intentos";
+    ASSERT_EQ(mensajeRecibido.first.size(), 1);
+    ASSERT_EQ(mensajeRecibido.first[0].cols, imagen_real.cols);
+    ASSERT_EQ(mensajeRecibido.first[0].rows, imagen_real.rows);
+    ASSERT_EQ(mensajeRecibido.first[0].channels(), imagen_real.channels());
+    ASSERT_EQ(cv::norm(mensajeRecibido.first[0], imagen_real, cv::NORM_L1), 0)
+        << "La imagen reconstruida no coincide con la original";
 
-    // Deserializar el header
-    nlohmann::json message_json = nlohmann::json::parse(header_json);
-
-    // Simular reconstrucción de imágenes
-    std::vector<cv::Mat> images;
-    int offset = 0;
-    for (const auto& img_meta : message_json["images"]) {
-        int width = img_meta["metadata"]["width"];
-        int height = img_meta["metadata"]["height"];
-        int channels = img_meta["metadata"]["channels"];
-        int size = img_meta["metadata"]["size"];
-
-        cv::Mat img(height, width, CV_8UC(channels));
-        std::memcpy(img.data, images_data.data() + offset, size);
-        offset += size;
-        images.push_back(img);
-    }
-
-    // Validaciones
-    ASSERT_EQ(images.size(), 1);
-    ASSERT_EQ(images[0].cols, imagen_real.cols);
-    ASSERT_EQ(images[0].rows, imagen_real.rows);
-    ASSERT_EQ(images[0].channels(), imagen_real.channels());
-
-    // Compara el contenido pixel a pixel
-    ASSERT_EQ(cv::norm(images[0], imagen_real, cv::NORM_L1), 0) << "La imagen reconstruida no coincide con la original";
+    // Si quisieras comprobar el campo 'tipo' en data:
+    ASSERT_EQ(get_string(mensajeRecibido.second, "tipo"), "imagen_real_test");
 }

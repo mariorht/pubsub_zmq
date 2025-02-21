@@ -24,7 +24,7 @@ std::vector<std::string> Publisher::build_message(const std::vector<cv::Mat>& fr
         meta["width"] = frame.cols;
         meta["height"] = frame.rows;
         meta["channels"] = frame.channels();
-        meta["dtype"] = "uint8";
+        meta["dtype"] = mat_type_to_dtype_string(frame.depth());
         meta["size"] = buffer.size();
         images_metadata.push_back({{"metadata", meta}});
     }
@@ -65,4 +65,19 @@ void Publisher::publish_message(const std::vector<std::string>& message_chunks) 
     }
 
     std::cout << "📤 Mensaje fragmentado en " << num_chunks << " partes enviado." << std::endl;
+}
+
+
+
+std::string Publisher::mat_type_to_dtype_string(int mat_type) {
+    switch (mat_type) {
+        case CV_8U: return "uint8";
+        case CV_8S: return "int8";
+        case CV_16U: return "uint16";
+        case CV_16S: return "int16";
+        case CV_32S: return "int32";
+        case CV_32F: return "float32";
+        case CV_64F: return "float64";
+        default: throw std::runtime_error("Tipo de cv::Mat no soportado: " + std::to_string(mat_type));
+    }
 }

@@ -24,7 +24,8 @@ func main() {
 	fmt.Println("✅ Publisher (Go) iniciado. Esperando suscriptores...")
 	time.Sleep(2 * time.Second)
 
-	for i := 0; i < 1; i++ {
+	messages := 1
+	for i := 0; i < messages; i++ {
 		data := map[string]interface{}{
 			"key":   "probando",
 			"index": i,
@@ -55,5 +56,5 @@ func main() {
 		time.Sleep(1 * time.Second)
 	}
 
-	fmt.Println("✅ Publisher (Go) finalizado tras enviar 5 mensajes.")
+	fmt.Println("✅ Publisher (Go) finalizado tras enviar ", messages,  " mensajes.")
 }

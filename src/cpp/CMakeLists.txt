@@ -15,8 +15,8 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(include)
 
 # Añadir ejecutables
-add_executable(main_publisher tests/integration/main_publisher.cpp src/publisher.cpp)
-add_executable(main_subscriber tests/integration/main_subscriber.cpp src/subscriber.cpp)
+add_executable(main_publisher tests/integration/main_publisher.cpp src/publisher.cpp src/subscriber.cpp )
+add_executable(main_subscriber tests/integration/main_subscriber.cpp src/subscriber.cpp src/publisher.cpp)
 
 # Linkear con ZeroMQ
 target_link_libraries(main_publisher zmq ${OpenCV_LIBS})

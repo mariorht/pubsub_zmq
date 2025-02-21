@@ -35,9 +35,24 @@ if __name__ == "__main__":
             message_bytes = pub.build_message(frames, data)
             pub.publish_message(message_bytes)
 
-            # Guardar el último mensaje enviado
+            # 🔄 Guardar el mensaje completo
+            result_publisher = {
+                "type": "images",
+                "count": len(frames),
+                "images": [{
+                    "metadata": {
+                        "width": f.shape[1],
+                        "height": f.shape[0],
+                        "channels": f.shape[2] if len(f.shape) > 2 else 1,
+                        "dtype": str(f.dtype),
+                        "size": f.nbytes,
+                    }
+                } for f in frames],
+                "data": data
+            }
+
             with open("/shared/result_publisher.json", "w") as f:
-                json.dump(data, f)
+                json.dump(result_publisher, f, indent=4)
 
             print(f"📤 Mensaje {i} enviado con {len(frames)} imágenes y data {data}")
 
