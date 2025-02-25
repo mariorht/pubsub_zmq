@@ -13,15 +13,22 @@ class Publisher:
         self.topic = topic.encode()
         self.chunk_size = chunk_size  # Tamaño de fragmento en bytes
 
-    def build_message(self, frames, data):
+    def build_message(self, frames, data, format="raw"):
         """ Construye un mensaje con un número indeterminado de imágenes y datos adicionales. """
         images_metadata = []
         images_data = []
         for frame in frames:
-            image_bytes = frame.tobytes()
+            if format == "jpeg":
+                success, encoded_img = cv2.imencode(".jpg", frame)
+                if not success:
+                    raise ValueError("Error encoding image to JPEG")
+                image_bytes = encoded_img.tobytes()
+            else:  # RAW
+                image_bytes = frame.tobytes()
+
             channels = frame.shape[2] if len(frame.shape) > 2 else 1
             image_metadata = {
-                "format": "raw",
+                "format": format,
                 "width": frame.shape[1],
                 "height": frame.shape[0],
                 "channels": channels,

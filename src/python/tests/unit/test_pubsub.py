@@ -101,7 +101,7 @@ def test_pubsub_multiple_channels(setup_pubsub):
         frames = [fmt, fmt, fmt]  # Use the same frame 3 times for simplicity
 
         # Build and publish message
-        message_bytes = pub.build_message(frames, data)
+        message_bytes = pub.build_message(frames, data, "raw")
         pub.publish_message(message_bytes)
 
         # Receive and verify message
@@ -116,25 +116,98 @@ def test_pubsub_multiple_channels(setup_pubsub):
 
 
 
-# def test_pubsub_text_only(setup_pubsub):
-#     pub, sub = setup_pubsub
+def test_pubsub_jpeg(setup_pubsub):
+    pub, sub = setup_pubsub
 
-#     print("Enviando mensaje sin imágenes...")
-#     # No images, only text data
-#     frames = []
-#     data = {"key": "probando", "message": "Este es un mensaje de prueba sin imágenes."}
+    # Set environment variable for image path
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    image_path = os.path.join(base_dir, "../../../../assets/pong.png")
 
-#     # Build and publish message
-#     message_bytes = pub.build_message(frames, data)
-#     pub.publish_message(message_bytes)
-#     print("Mensaje publicado.")
+    # Load image
+    frame = cv2.imread(image_path)
+    assert frame is not None, f"❌ No se pudo cargar la imagen: {image_path}"
 
-#     # Receive and verify message
-#     images, received_data = sub.receive_message(timeout=5000)
-#     print("Mensaje recibido.")
-#     assert images is not None, "❌ No se recibieron imágenes."
-#     assert images == [], "❌ Se recibieron imágenes cuando no se esperaban."
-#     assert received_data == data, "❌ Los datos recibidos no coinciden."
+    frames = [frame, frame, frame]  # Use the same frame 3 times for simplicity
+    data = {"key": "probando"}
+
+    # Build and publish message in JPEG format
+    message_bytes = pub.build_message(frames, data, format="jpeg")
+    pub.publish_message(message_bytes)
+
+    # Receive and verify message
+    images, received_data = sub.receive_message(timeout=5000)
+    assert images is not None, "❌ No se recibieron imágenes."
+    assert received_data == data, "❌ Los datos recibidos no coinciden."
+
+    for img in images:
+        assert img is not None, "❌ La imagen decodificada es nula."
+        assert img.shape == frame.shape, f"❌ La imagen recibida tiene dimensiones incorrectas: {img.shape} != {frame.shape}"
+
+
+def test_pubsub_jpeg_quality(setup_pubsub):
+    pub, sub = setup_pubsub
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    image_path = os.path.join(base_dir, "../../../../assets/pong.png")
+
+    # Load image
+    frame = cv2.imread(image_path)
+    assert frame is not None, f"❌ No se pudo cargar la imagen: {image_path}"
+
+    frames = [frame]  # Enviar solo una imagen para comparar con precisión
+    data = {"key": "probando"}
+
+    # Build and publish message in JPEG format
+    message_bytes = pub.build_message(frames, data, format="jpeg")
+    pub.publish_message(message_bytes)
+
+    # Receive and verify message
+    images, received_data = sub.receive_message(timeout=5000)
+    assert images is not None, "❌ No se recibieron imágenes."
+    assert received_data == data, "❌ Los datos recibidos no coinciden."
+
+    received_image = images[0]
+    assert received_image.shape == frame.shape, "❌ La imagen recibida tiene dimensiones incorrectas."
+
+    # Calcular la diferencia absoluta entre la imagen original y la recibida
+    difference = cv2.absdiff(frame, received_image)
+    mean_diff = np.mean(difference)
+
+    print(f"📊 Diferencia promedio entre imágenes: {mean_diff}")
+
+    # La diferencia debería ser baja (JPEG introduce ligeras pérdidas)
+    assert mean_diff < 5, f"❌ La pérdida de calidad de JPEG es demasiado alta: {mean_diff}"
+
+
+def test_pubsub_text_only(setup_pubsub):
+    pub, sub = setup_pubsub
+
+    print("📨 Enviando mensaje sin imágenes...")
+    
+    # Mensaje sin imágenes, solo con datos
+    frames = []  # Lista vacía de imágenes
+    data = {
+        "key": "probando",
+        "message": "Este es un mensaje de prueba sin imágenes."
+    }
+
+    # Construir y enviar el mensaje
+    message_bytes = pub.build_message(frames, data)
+    pub.publish_message(message_bytes)
+    print("✅ Mensaje publicado.")
+
+    # Recibir y verificar mensaje
+    images, received_data = sub.receive_message(timeout=5000)
+    print("📩 Mensaje recibido.")
+
+    # Verificar que no hay imágenes y que los datos coinciden
+    assert images is not None, "❌ No se recibieron imágenes (debería ser una lista vacía)."
+    assert images == [], "❌ Se recibieron imágenes cuando no se esperaban."
+    assert received_data == data, "❌ Los datos recibidos no coinciden."
+
+    print("✅ Test de mensaje sin imágenes completado exitosamente.")
+
+
 
 
 if __name__ == "__main__":

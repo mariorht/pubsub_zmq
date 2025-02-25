@@ -58,12 +58,14 @@ class Subscriber:
                             size = image_info["metadata"]["size"]
                             format = image_info["metadata"]["format"]
                             dtype = image_info["metadata"]["dtype"]
+                            width = image_info["metadata"]["width"]
+                            height = image_info["metadata"]["height"]
+                            channels = image_info["metadata"]["channels"]
                             image_bytes = images_bytes[offset:offset + size]
                             if format == "raw":
-                                width = image_info["metadata"]["width"]
-                                height = image_info["metadata"]["height"]
-                                channels = image_info["metadata"]["channels"]
                                 image_array = np.frombuffer(image_bytes, dtype=dtype).reshape((height, width, channels))
+                            elif format == "jpeg":
+                                image_array = cv2.imdecode(np.frombuffer(image_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
                             else:
                                 print(f"❌ Formato de imagen no soportado: {format}")
                                 self.image_chunks.clear()
