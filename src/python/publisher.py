@@ -20,11 +20,17 @@ class Publisher:
         for frame in frames:
             if format == "jpeg":
                 success, encoded_img = cv2.imencode(".jpg", frame)
-                if not success:
-                    raise ValueError("Error encoding image to JPEG")
-                image_bytes = encoded_img.tobytes()
+            elif format == "png":
+                success, encoded_img = cv2.imencode(".png", frame)
             else:  # RAW
-                image_bytes = frame.tobytes()
+                success = True
+                encoded_img = None
+
+            if not success:
+                raise ValueError(f"Error encoding image to {format.upper()}")
+
+            image_bytes = encoded_img.tobytes() if format in ["jpeg", "png"] else frame.tobytes()
+
 
             channels = frame.shape[2] if len(frame.shape) > 2 else 1
             image_metadata = {

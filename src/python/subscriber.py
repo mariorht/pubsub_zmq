@@ -64,7 +64,7 @@ class Subscriber:
                             image_bytes = images_bytes[offset:offset + size]
                             if format == "raw":
                                 image_array = np.frombuffer(image_bytes, dtype=dtype).reshape((height, width, channels))
-                            elif format == "jpeg":
+                            elif format in ["jpeg", "png"]:
                                 image_array = cv2.imdecode(np.frombuffer(image_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
                             else:
                                 print(f"❌ Formato de imagen no soportado: {format}")
