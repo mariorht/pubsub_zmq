@@ -1,6 +1,7 @@
 #include "publisher.hpp"
 #include <nlohmann/json.hpp>
 #include <iostream>
+#include <opencv2/imgcodecs.hpp>
 
 using json = nlohmann::json;
 
@@ -10,23 +11,32 @@ Publisher::Publisher(const std::string& address, const std::string& topic, size_
     std::cout << "✅ Publisher C++ conectado en " << address << " con topic: " << topic << std::endl;
 }
 
-std::vector<std::string> Publisher::build_message(const std::vector<cv::Mat>& frames, const std::map<std::string, std::string>& data) {
+std::vector<std::string> Publisher::build_message(const std::vector<cv::Mat>& frames, const std::map<std::string, std::string>& data, const std::string& format) {
     json message_json;
     std::vector<std::string> images_data;
     json images_metadata = json::array();
 
     for (const auto& frame : frames) {
-        std::vector<uchar> buffer(frame.data, frame.data + frame.total() * frame.elemSize());
-        images_data.push_back(std::string(buffer.begin(), buffer.end()));
+        std::vector<uchar> buffer;
+        
+        if (format == "jpeg") {
+            cv::imencode(".jpg", frame, buffer);
+        } else if (format == "png") {
+            cv::imencode(".png", frame, buffer);
+        } else { // RAW
+            buffer.assign(frame.data, frame.data + frame.total() * frame.elemSize());
+        }
 
         json meta;
-        meta["format"] = "raw";
+        meta["format"] = format;
         meta["width"] = frame.cols;
         meta["height"] = frame.rows;
         meta["channels"] = frame.channels();
         meta["dtype"] = mat_type_to_dtype_string(frame.depth());
         meta["size"] = buffer.size();
         images_metadata.push_back({{"metadata", meta}});
+
+        images_data.push_back(std::string(buffer.begin(), buffer.end()));
     }
 
     message_json["type"] = "images";

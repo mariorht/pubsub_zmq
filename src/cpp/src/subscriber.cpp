@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 #include <variant>
+#include <opencv2/imgcodecs.hpp>
 
 using json = nlohmann::json;
 
@@ -14,7 +15,7 @@ Subscriber::Subscriber(const std::string &address, const std::string &topic)
     std::cout << "✅ Subscriber C++ conectado a " << address << std::endl;
 }
 
-std::pair<std::vector<cv::Mat>, DataMap> Subscriber::receive_message() {
+std::pair<std::vector<cv::Mat>, DataMap> Subscriber::receive_message(int timeout_ms) {
     std::string topic_str;
     std::vector<std::string> chunks;
     int num_chunks_int = -1;
@@ -23,11 +24,15 @@ std::pair<std::vector<cv::Mat>, DataMap> Subscriber::receive_message() {
         zmq::message_t topic, index, num_chunks, chunk;
 
         auto res1 = socket.recv(topic, zmq::recv_flags::none);
+        if (!res1) {
+            throw std::runtime_error("❌ Timeout: No se recibieron mensajes en el tiempo esperado.");
+        }
+        
         auto res2 = socket.recv(index, zmq::recv_flags::none);
         auto res3 = socket.recv(num_chunks, zmq::recv_flags::none);
         auto res4 = socket.recv(chunk, zmq::recv_flags::none);
 
-        if (!res1 || !res2 || !res3 || !res4) {
+        if (!res2 || !res3 || !res4) {
             throw std::runtime_error("❌ Error recibiendo partes del mensaje multipart");
         }
 
@@ -112,16 +117,27 @@ std::pair<std::vector<cv::Mat>, DataMap> Subscriber::receive_message() {
         int channels = img_meta["metadata"]["channels"];
         int size = img_meta["metadata"]["size"];
         std::string dtype = img_meta["metadata"]["dtype"];
+        std::string format = img_meta["metadata"]["format"];
 
         int type = numpy_dtype_to_opencv(dtype, channels);
 
         if (offset + size > images_data.size()) {
+            std::cerr << "❌ Error: Esperando " << size 
+            << " bytes, pero solo hay " << (images_data.size() - offset) 
+            << " disponibles." << std::endl;
             throw std::runtime_error("❌ Error: Datos de imagen incompletos.");
         }
 
-        cv::Mat img(height, width, type);
-        std::memcpy(img.data, images_data.data() + offset, size);
-        offset += size;
+        cv::Mat img;
+        if (format == "raw") {
+            img = cv::Mat(height, width, type);
+            std::memcpy(img.data, images_data.data() + offset, size);
+        } else if (format == "jpeg" || format == "png") {
+            std::vector<uchar> buffer(images_data.begin() + offset, images_data.begin() + offset + size);
+            img = cv::imdecode(buffer, cv::IMREAD_COLOR);
+        } else {
+            throw std::runtime_error("❌ Error: Formato de imagen no soportado: " + format);
+        }
 
         images.push_back(img);
     }
