@@ -111,8 +111,8 @@ Todos los lenguajes manejan la misma estructura JSON.
   }
 }
 
+```
 
 
 ## 📝 **Licencia**
 Este proyecto está licenciado bajo la **Licencia MIT**.
-```
