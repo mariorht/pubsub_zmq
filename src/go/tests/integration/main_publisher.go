@@ -31,7 +31,7 @@ func main() {
 			"index": i,
 		}
 
-		messageBytes, err := pub.BuildMessage(nil, data)
+		messageBytes, err := pub.BuildMessage(nil, data, "")
 		if err != nil {
 			fmt.Printf("❌ Error al construir mensaje: %v\n", err)
 			continue

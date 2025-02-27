@@ -1,7 +1,11 @@
 package go_pubsub_zmq
 
 import (
+	"bytes"
 	"encoding/json"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"log"
 	"strconv"
 
@@ -26,6 +30,28 @@ type Publisher struct {
 	ChunkSize      int    // Tamaño de fragmento en bytes
 	TotalBytesSent int    // Para seguimiento (total de bytes enviados)
 }
+
+
+// EncodeImage convierte una imagen en bytes según el formato especificado ("jpeg" o "png").
+func EncodeImage(img image.Image, format string) ([]byte, error) {
+	var buf bytes.Buffer
+	switch format {
+	case "jpeg":
+		err := jpeg.Encode(&buf, img, nil)
+		if err != nil {
+			return nil, err
+		}
+	case "png":
+		err := png.Encode(&buf, img)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, nil // No se soporta RAW, solo PNG y JPEG
+	}
+	return buf.Bytes(), nil
+}
+
 
 // NewPublisher crea un nuevo Publisher en la dirección y con el tema indicados.
 func NewPublisher(address string, topic string, chunkSize int) (*Publisher, error) {
@@ -71,23 +97,29 @@ type Message struct {
 	Data   map[string]interface{} `json:"data"`   // Datos adicionales
 }
 
-// BuildMessage construye el mensaje (JSON) a partir de los frames y datos adicionales.
-// Si se proveen frames, se emite un warning y se omite la parte binaria de imagen (queda sin datos).
-func (p *Publisher) BuildMessage(frames []Frame, data map[string]interface{}) ([]byte, error) {
+// BuildMessage construye el mensaje (JSON) a partir de imágenes en formato PNG/JPEG y datos adicionales.
+func (p *Publisher) BuildMessage(frames []image.Image, data map[string]interface{}, format string) ([]byte, error) {
 	var imagesMetadata []ImageMetadataWrapper
+	var imagesData [][]byte
 
 	if len(frames) > 0 {
-		log.Println("WARNING: Image processing is not implemented; ignoring image data.")
 		for _, frame := range frames {
+			imgBytes, err := EncodeImage(frame, format)
+			if err != nil {
+				log.Println("❌ Error al codificar imagen:", err)
+				continue
+			}
+
 			meta := ImageMetadata{
-				Format:   "raw",
-				Width:    frame.Width,
-				Height:   frame.Height,
-				Channels: frame.Channels,
-				Dtype:    frame.Dtype,
-				Size:     0, // No se procesan los datos de imagen
+				Format:   format,
+				Width:    frame.Bounds().Dx(),
+				Height:   frame.Bounds().Dy(),
+				Channels: 3, // JPEG/PNG suelen ser RGB
+				Dtype:    "uint8",
+				Size:     len(imgBytes),
 			}
 			imagesMetadata = append(imagesMetadata, ImageMetadataWrapper{Metadata: meta})
+			imagesData = append(imagesData, imgBytes)
 		}
 	}
 
@@ -98,17 +130,20 @@ func (p *Publisher) BuildMessage(frames []Frame, data map[string]interface{}) ([
 		Data:   data,
 	}
 
-	//Agregamos el separador nulo, pero no enviamos ninguna imagen aún
 	jsonBytes, err := json.Marshal(msg)
 	if err != nil {
 		return nil, err
 	}
 
-	// Agregar el separador nulo ('\0')
-	jsonBytes = append(jsonBytes, 0)
+	// Agregar separador nulo y luego las imágenes
+	var fullMessage bytes.Buffer
+	fullMessage.Write(jsonBytes)
+	fullMessage.WriteByte(0)
+	for _, img := range imagesData {
+		fullMessage.Write(img)
+	}
 
-	return jsonBytes, nil
-
+	return fullMessage.Bytes(), nil
 }
 
 // PublishMessage envía el mensaje binario fragmentado en partes de tamaño ChunkSize.

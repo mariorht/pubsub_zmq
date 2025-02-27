@@ -54,7 +54,7 @@ check_files_exist() {
 
 
 clean_shared() {
-  rm -f ./shared/result.json ./shared/result_publisher.json
+  rm -f ./shared/result.json ./shared/result_publisher.json ./shared/*.png
 }
 
 # ============================

@@ -23,7 +23,8 @@ if __name__ == "__main__":
             print(f"📥 Mensaje {i} recibido: {data}")
 
             if frames:
-                print(f"⚠️ Recibidas {len(frames)} imágenes (ignorado por ahora).")
+                print(f"⚠️ Recibidas {len(frames)} imágenes.")
+                cv2.imwrite(f"/shared/result_{i}.png", frames[0])
 
             last_data = data
 

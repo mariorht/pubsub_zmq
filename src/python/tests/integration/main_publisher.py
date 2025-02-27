@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
             data = {"key": "probando", "index": i}
 
-            message_bytes = pub.build_message(frames, data)
+            message_bytes = pub.build_message(frames, data, "png")
             pub.publish_message(message_bytes)
 
             # 🔄 Guardar el mensaje completo

@@ -3,6 +3,7 @@ package go_pubsub_zmq
 import (
 	"bytes"
 	"encoding/json"
+	"image"
 	"log"
 	"strconv"
 
@@ -15,6 +16,17 @@ type Subscriber struct {
 	context *zmq4.Context
 	Topic   []byte
 }
+
+
+// DecodeImage convierte bytes en una imagen Go.
+func DecodeImage(data []byte, format string) (image.Image, error) {
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	return img, nil
+}
+
 
 // NewSubscriber crea un nuevo Subscriber, conecta al address y se suscribe al topic dado.
 func NewSubscriber(address string, topic string) (*Subscriber, error) {
@@ -49,31 +61,28 @@ type MessageReceived struct {
 	Data   map[string]interface{} `json:"data"`
 }
 
-// ReceiveMessage reensambla los fragmentos recibidos y decodifica el mensaje JSON.
-// Si se recibe datos de imagen, se emite un warning y se ignoran.
-func (s *Subscriber) ReceiveMessage() (*MessageReceived, error) {
+// ReceiveMessage reensambla los fragmentos y decodifica las imágenes si las hay.
+func (s *Subscriber) ReceiveMessage() (*MessageReceived, []image.Image, error) {
 	var assembled bytes.Buffer
 	var totalFragments int
 
-	// Usamos RecvMessageBytes para obtener las partes sin perder datos binarios.
 	for {
 		parts, err := s.socket.RecvMessageBytes(0)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		
-		// Se esperan 4 partes: [topic, fragment index, total fragments, chunk]
+
 		if len(parts) < 4 {
 			log.Println("Received incomplete message parts; skipping")
 			continue
 		}
 		fragIndex, err := strconv.Atoi(string(parts[1]))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		tot, err := strconv.Atoi(string(parts[2]))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		totalFragments = tot
 		assembled.Write(parts[3])
@@ -83,8 +92,8 @@ func (s *Subscriber) ReceiveMessage() (*MessageReceived, error) {
 	}
 
 	fullMessage := assembled.Bytes()
-	// Se espera que el mensaje sea: JSON [ + null byte + image data ]
 	parts := bytes.SplitN(fullMessage, []byte{0}, 2)
+
 	var msgJSON []byte
 	var imageData []byte
 	if len(parts) >= 1 {
@@ -93,15 +102,38 @@ func (s *Subscriber) ReceiveMessage() (*MessageReceived, error) {
 	if len(parts) == 2 {
 		imageData = parts[1]
 	}
+
 	var message MessageReceived
 	if err := json.Unmarshal(msgJSON, &message); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
+	var images []image.Image
 	if len(imageData) > 0 {
-		log.Println("WARNING: Received image data but image processing is not implemented; ignoring image data.")
+		offset := 0
+		for _, imgMeta := range message.Images {
+			meta := imgMeta.Metadata
+			if offset+meta.Size > len(imageData) {
+				log.Println("❌ Error: Datos de imagen incompletos.")
+				break
+			}
+
+			imgBytes := imageData[offset : offset+meta.Size]
+			offset += meta.Size
+
+			img, err := DecodeImage(imgBytes, meta.Format)
+			if err != nil {
+				log.Println("❌ Error al decodificar imagen:", err)
+				continue
+			}
+
+			images = append(images, img)
+		}
 	}
-	return &message, nil
+
+	return &message, images, nil
 }
+
 
 // Close cierra el socket y termina el contexto ZeroMQ.
 func (s *Subscriber) Close() {

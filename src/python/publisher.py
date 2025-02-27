@@ -14,7 +14,7 @@ class Publisher:
         self.chunk_size = chunk_size  # Tamaño de fragmento en bytes
 
     def build_message(self, frames, data, format="raw"):
-        """ Construye un mensaje con un número indeterminado de imágenes y datos adicionales. """
+        """ Construye un mensaje con un número indeterminado de imágenes y datos adicionales. jpeg , png o raw """
         images_metadata = []
         images_data = []
         for frame in frames:
