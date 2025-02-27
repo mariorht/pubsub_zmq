@@ -85,6 +85,7 @@ services:
       - pubsub_net
     volumes:
       - ./src/go:/app
+      - ./assets:/assets
       - ./shared:/shared
     command: go run /app/tests/integration/main_publisher.go
 
@@ -97,7 +98,6 @@ services:
       - PUBSUB_ENDPOINT=${PUBSUB_ENDPOINT}
     volumes:
       - ./src/go:/app
-      - ./assets:/assets
       - ./shared:/shared
     command: go run /app/tests/integration/main_subscriber.go
 
