@@ -1,63 +1,25 @@
 # PubSub ZMQ Project
 
-# 🏗️🚧 WORK IN PROGRESS 🚧🏗️
+## 🏗️🚧 Estado del Proyecto 🚧🏗️
 
-Este proyecto contiene librerías que facilitan la publicación y suscripción de mensajes que contienen múltiples imágenes y datos adicionales utilizando ZeroMQ.  
-La biblioteca está diseñada para manejar grandes datos binarios de manera eficiente mediante la fragmentación de mensajes en partes más pequeñas.
+Este proyecto implementa **publicadores y suscriptores ZeroMQ** en **Python, Go y C++**  
+para transmitir mensajes con imágenes y datos en formato JSON.
 
----
-
-## 🚀 **Estado del Proyecto**
-
-- **Python:**  
-  ✅ Implementación completada. Se pueden publicar y suscribir mensajes, reconstruir imágenes y procesar datos adicionales con ZeroMQ.  
-  ✅ Genera un archivo JSON con el mensaje enviado (`/shared/result_publisher.json`) y otro con el mensaje recibido (`/shared/result.json`).  
-
-- **Go:**  
-  🔧 Implementación en progreso. Se soporta el protocolo de mensajes, pero aún no se procesan imágenes.  
-  ✅ Se han añadido pruebas de integración con Python y C++ para verificar la compatibilidad.  
-  ✅ Ahora los suscriptores usan `PUBSUB_ENDPOINT` para configurar la dirección del publicador.  
-
-- **C++:**  
-  🔧 Implementación en progreso. Ya se soporta el protocolo de mensajes, pero aún no se procesan imágenes.  
-  ✅ Se han creado pruebas de integración entre C++ y Python, y entre C++ y Go.  
-  ✅ Se han estandarizado los mensajes JSON para asegurar compatibilidad entre lenguajes.  
+Todos los lenguajes usan el mismo **protocolo JSON**,  
+permitiendo la interoperabilidad entre diferentes implementaciones.
 
 ---
 
-## 📂 **Estructura del Proyecto**
+## 🚀 **Estado Actual**
+| Lenguaje  | Estado |
+|-----------|--------|
+| **Python** | ✅ **Completado.** Publicador y suscriptor funcionando con imágenes PNG/JPEG/Raw Opencv. |
+| **Go** | ✅ **Completado.** Publicador y suscriptor con soporte para imágenes PNG/JPEG. **NO SOPORTA RAW DE OPENCV** |
+| **C++** | ✅ **Completado.** Publicador y suscriptor con imágenes con imágenes PNG/JPEG/Raw Opencv. |
 
-```
-.
-├── src/
-│   ├── python/
-│   │   ├── publisher.py  # Implementación del publicador
-│   │   ├── subscriber.py  # Implementación del suscriptor
-│   │   ├── main_publisher.py  # Script de prueba del publicador
-│   │   ├── main_subscriber.py  # Script de prueba del suscriptor
-│   │   ├── tests/  # Pruebas unitarias e integración
-│   │   ├── pytest.ini  # Configuración de pytest
-│   │   ├── requirements.txt  # Dependencias
-│   ├── go/
-│   │   ├── publisher.go  # Implementación del publicador
-│   │   ├── subscriber.go  # Implementación del suscriptor
-│   │   ├── main_publisher.go  # Script de prueba del publicador
-│   │   ├── main_subscriber.go  # Script de prueba del suscriptor
-│   │   ├── tests/  # Pruebas unitarias e integración
-│   │   ├── go.mod / go.sum  # Configuración del módulo Go
-│   ├── cpp/
-│   │   ├── include/  # Cabeceras de las clases Publisher y Subscriber
-│   │   ├── src/  # Implementaciones de Publisher y Subscriber
-│   │   ├── tests/  # Pruebas de integración entre C++, Go y Python
-│   │   ├── CMakeLists.txt  # Configuración de CMake
-│   │   ├── Dockerfile  # Imagen Docker para compilar y ejecutar C++
-├── assets/  # Contiene archivos como imágenes utilizadas en las pruebas
-├── protocol.md  # Documentación del protocolo de mensajes
-├── docker-compose.yml  # Configuración de Docker Compose para pruebas
-├── run_tests.sh  # Script para ejecutar todas las pruebas de integración
-└── readme.md  # Este archivo
-```
+✅ **Las pruebas de integración confirman la compatibilidad entre Python, Go y C++.**
 
+---
 ---
 
 ## 📜 **Uso de Publicadores y Suscriptores**
@@ -135,11 +97,11 @@ Todos los lenguajes manejan la misma estructura JSON.
   "images": [
     {
       "metadata": {
-        "width": 1222,
-        "height": 945,
+        "width": 100,
+        "height": 100,
         "channels": 3,
         "dtype": "uint8",
-        "size": 3464370
+        "size": 30000
       }
     }
   ],
@@ -148,23 +110,9 @@ Todos los lenguajes manejan la misma estructura JSON.
     "index": 0
   }
 }
-```
-🔹 **Cada publicador guarda el mensaje enviado en:**  
-📌 `/shared/result_publisher.json`  
 
-🔹 **Cada suscriptor guarda el mensaje recibido en:**  
-📌 `/shared/result.json`
 
-Si los archivos **son diferentes, la prueba fallará**.
-
----
-
-## 📌 **Estado Actual de las Pruebas de Integración**
-✅ **Python ↔ Go** (Mensajes enviados y recibidos coinciden correctamente).  
-✅ **Python ↔ C++** (Mensajes enviados y recibidos coinciden correctamente).  
-✅ **Go ↔ C++** (Mensajes enviados y recibidos coinciden correctamente).  
-
----
 
 ## 📝 **Licencia**
 Este proyecto está licenciado bajo la **Licencia MIT**.
+```
