@@ -30,31 +30,32 @@ int main() {
 
     nlohmann::json lastMessage;
 
-    for (int i = 0; i < 1; ++i) {
-        auto [images, data] = sub.receive_message();
+    auto [images, data] = sub.receive_message();
 
-        for (const auto& [k, v] : data) {
-            std::cout << k << ": ";
-            std::visit([](auto&& arg) { std::cout << arg; }, v);
-            std::cout << std::endl;
-        }
+    for (const auto& [k, v] : data) {
+        std::cout << k << ": ";
+        std::visit([](auto&& arg) { std::cout << arg; }, v);
+        std::cout << std::endl;
+    }
 
-        lastMessage["type"] = "images";
-        lastMessage["count"] = images.size();
-        lastMessage["images"] = nlohmann::json::array();
+    lastMessage["type"] = "images";
+    lastMessage["count"] = images.size();
+    lastMessage["images"] = nlohmann::json::array();
 
-        // Aquí está el cambio clave:
-        lastMessage["data"] = variant_map_to_json(data);
+    // Aquí está el cambio clave:
+    lastMessage["data"] = variant_map_to_json(data);
 
-        for (const auto& img : images) {
-            nlohmann::json img_meta;
-            img_meta["width"] = img.cols;
-            img_meta["height"] = img.rows;
-            img_meta["channels"] = img.channels();
-            img_meta["size"] = img.total() * img.elemSize();
-            img_meta["dtype"] = Publisher::mat_type_to_dtype_string(img.depth());
-            lastMessage["images"].push_back({{"metadata", img_meta}});
-        }
+    int i = 0;
+    for (const auto& img : images) {
+        nlohmann::json img_meta;
+        img_meta["width"] = img.cols;
+        img_meta["height"] = img.rows;
+        img_meta["channels"] = img.channels();
+        img_meta["size"] = img.total() * img.elemSize();
+        img_meta["dtype"] = Publisher::mat_type_to_dtype_string(img.depth());
+        lastMessage["images"].push_back({{"metadata", img_meta}});
+
+        cv::imwrite("/shared/result_image_" + std::to_string(i++) + ".png", img);
     }
 
     // Guarda el último mensaje recibido en JSON

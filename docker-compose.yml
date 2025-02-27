@@ -108,6 +108,7 @@ services:
       - pubsub_net
     volumes:
       - ./shared:/shared
+      - ./assets:/assets
     depends_on:
       - cpp_build
     command: /app/build/main_publisher
