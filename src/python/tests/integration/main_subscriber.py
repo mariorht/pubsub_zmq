@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import json
+import cv2
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 

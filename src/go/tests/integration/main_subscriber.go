@@ -48,41 +48,57 @@ func main() {
 	var lastMessage map[string]interface{}
 	var savedImages []string
 
-	for i := 0; i < 1; i++ {
-		msg, images, err := sub.ReceiveMessage()
-		if err != nil {
-			log.Fatalf("❌ Error al recibir mensaje: %v", err)
-		}
-
-		fmt.Printf("📥 Mensaje %d recibido: %+v\n", i, msg.Data)
-
-		// Guardar imágenes si se recibieron
-		if len(images) > 0 {
-			fmt.Printf("⚠️ Recibidas %d imágenes. Guardándolas...\n", len(images))
-			for idx, img := range images {
-				filename := fmt.Sprintf("/shared/image_%d.png", idx)
-				err := saveImage(img, filename, "png")
-				if err != nil {
-					log.Printf("❌ Error al guardar imagen %d: %v", idx, err)
-					continue
-				}
-				savedImages = append(savedImages, filepath.Base(filename))
-			}
-		}
-
-		lastMessage = msg.Data
+	
+	msg, images, err := sub.ReceiveMessage()
+	if err != nil {
+		log.Fatalf("❌ Error al recibir mensaje: %v", err)
 	}
 
+	fmt.Printf("📥 Mensaje recibido: %+v\n", msg.Data)
+
+	// Guardar imágenes si se recibieron
+	if len(images) > 0 {
+		fmt.Printf("⚠️ Recibidas %d imágenes. Guardándolas...\n", len(images))
+		for idx, img := range images {
+			filename := fmt.Sprintf("/shared/image_%d.png", idx)
+			err := saveImage(img, filename, "png")
+			if err != nil {
+				log.Printf("❌ Error al guardar imagen %d: %v", idx, err)
+				continue
+			}
+			savedImages = append(savedImages, filepath.Base(filename))
+		}
+	}
+
+	lastMessage = msg.Data
+	
+
 	// Escribir el último mensaje recibido en un JSON en el volumen compartido
-	var jsonImages interface{} = savedImages
-	if savedImages == nil {
-		jsonImages = []string{} // Forzar un array vacío si no hay imágenes
+	var imagesMetadata []map[string]interface{}
+
+	for idx, img := range images {
+		filename := fmt.Sprintf("/shared/image_%d.png", idx)
+		err := saveImage(img, filename, "png")
+		if err != nil {
+			log.Printf("❌ Error al guardar imagen %d: %v", idx, err)
+			continue
+		}
+	
+		// 🔹 Agregar metadatos en lugar del nombre del archivo
+		meta := map[string]interface{}{
+			"width":    img.Bounds().Dx(),
+			"height":   img.Bounds().Dy(),
+			"channels": 3,
+			"dtype":    "uint8",
+			"size":     img.Bounds().Dx() * img.Bounds().Dy() * 3, // RGB
+		}
+		imagesMetadata = append(imagesMetadata, map[string]interface{}{"metadata": meta})
 	}
 
 	result := map[string]interface{}{
 		"type":   "images",
 		"count":  len(savedImages),
-		"images": jsonImages,
+		"images": imagesMetadata,
 		"data":   lastMessage,
 	}
 
